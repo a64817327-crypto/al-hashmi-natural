@@ -5,8 +5,12 @@ const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
 
-// Serve static files from root directory
+// 1. Serve static files from root directory
 app.use(express.static(path.join(__dirname, '../')));
+
+// 2. Serve product images folder specifically for Vercel
+app.use('/Product Images', express.static(path.join(__dirname, '../Product Images')));
+app.use('/Product%20Images', express.static(path.join(__dirname, '../Product Images')));
 
 // Store received orders in memory
 let savedOrders = [];
@@ -178,6 +182,11 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../index.html'));
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running smoothly on http://localhost:${PORT}`);
-});
+// Export app for Vercel Serverless Function
+module.exports = app;
+
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Server running smoothly on http://localhost:${PORT}`);
+    });
+}
