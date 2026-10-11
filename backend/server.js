@@ -8,12 +8,15 @@ app.use(express.json());
 // Serve static files from root directory
 app.use(express.static(path.join(__dirname, '../')));
 
-// Real Products Detailed Data
+// Store received orders in memory
+let savedOrders = [];
+
+// Real Products Full Detailed Data
 const products = [
     {
         id: 1,
         name: "Sharbat Aksir-e-Jism (شربت اکسیرِ جسم)",
-        price: 290,
+        price: 980,
         image: "/Product Images/Aksir-e-Jism.jpeg",
         descEnglish: {
             subheading: "A Herbal Fruit Tonic for Women, Men & Children (Size: 240 ml)",
@@ -49,7 +52,7 @@ const products = [
     {
         id: 2,
         name: "Almond & Amla Hair Oil (آملہ + بادام ہیئر آئل)",
-        price: 350,
+        price: 720,
         image: "/Product Images/Almond & Amla Hair Oil.jpeg",
         descEnglish: {
             subheading: "Traditional Herbal Blend for Long, Thick & Strong Hair",
@@ -82,7 +85,7 @@ const products = [
     {
         id: 3,
         name: "Rogan-e-Damagi (روغنِ دماغی خاص)",
-        price: 500,
+        price: 820,
         image: "/Product Images/Rogan-e-Damagi.jpeg",
         descEnglish: {
             subheading: "Ideal Herbal Tonic Oil for Hair & Brain",
@@ -120,9 +123,54 @@ app.get('/api/products', (req, res) => {
     res.json(products);
 });
 
+// Save New Order
 app.post('/api/orders', (req, res) => {
-    console.log('New Order Received:', req.body);
+    const newOrder = req.body;
+    savedOrders.unshift(newOrder); // Save newest order first
+    console.log('New Order Received:', newOrder);
     res.status(200).json({ message: 'Order received successfully!' });
+});
+
+// View All Orders (Admin API)
+app.get('/api/admin/orders', (req, res) => {
+    res.json(savedOrders);
+});
+
+// Admin Page to view all orders
+app.get('/admin', (req, res) => {
+    res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Al Hashmi Natural - Admin Orders</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; background: #f4f8f5; }
+                h1 { color: #2c5e3b; margin-bottom: 20px; }
+                .order-card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 15px; border-left: 6px solid #2c5e3b; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+                .order-card h3 { color: #2c5e3b; margin-top: 0; }
+                ul { margin: 8px 0; padding-left: 20px; }
+            </style>
+        </head>
+        <body>
+            <h1>📦 Received Orders (${savedOrders.length})</h1>
+            ${savedOrders.length === 0 ? '<p>Abhi tak koi order nahi aaya hai.</p>' : ''}
+            ${savedOrders.map(o => `
+                <div class="order-card">
+                    <h3>Order Date: ${o.orderDate}</h3>
+                    <p><strong>Customer Name:</strong> ${o.customerName}</p>
+                    <p><strong>Phone:</strong> ${o.phone}</p>
+                    <p><strong>City:</strong> ${o.city}</p>
+                    <p><strong>Address:</strong> ${o.address}</p>
+                    <p><strong>Ordered Items:</strong></p>
+                    <ul>
+                        ${o.items.map(item => `<li>${item.name} x${item.qty} = Rs. ${item.price * item.qty}</li>`).join('')}
+                    </ul>
+                    <h4 style="color:#2c5e3b;">Total Amount: Rs. ${o.totalAmount}</h4>
+                </div>
+            `).join('')}
+        </body>
+        </html>
+    `);
 });
 
 // Serve main page

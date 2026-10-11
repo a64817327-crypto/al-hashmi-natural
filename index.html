@@ -293,7 +293,7 @@
 
     <!-- Top Announcement Bar -->
     <div class="top-bar">
-        <div>📞 Contact / WhatsApp Order: <strong>0312-8538441</strong></div>
+        <div>📞 WhatsApp Order: <strong>0312-8538441</strong> | ✉️ Email: <strong>a23158700@gmail.com</strong></div>
         <div>
             📢 Join Channel: <a href="https://whatsapp.com/channel/0029Vb9MK2c6hENu3ydmEH3i" target="_blank">Follow Al Hashmi Natural on WhatsApp</a>
         </div>
@@ -332,7 +332,7 @@
         <h2 id="products" class="section-title">Our Premium Herbal Products</h2>
         <div id="product-container"></div>
 
-        <!-- High Level About Us Section Inside Main Container -->
+        <!-- High Level About Us Section -->
         <section id="about" class="about-card">
             <h2>About Al Hashmi Natural</h2>
             <div class="about-subtitle">Purity • Tradition • Holistic Wellness</div>
@@ -352,7 +352,8 @@
                 Direct Order & Consultation: 
                 <a href="https://wa.me/923128538441" style="color: #2c5e3b; font-weight: bold; text-decoration: none;">
                     📞 0312-8538441
-                </a>
+                </a> 
+                | ✉️ <a href="mailto:a23158700@gmail.com" style="color: #2c5e3b; font-weight: bold; text-decoration: none;">a23158700@gmail.com</a>
             </div>
         </section>
     </main>
@@ -369,7 +370,7 @@
     <footer>
         <p>&copy; 2026 Al Hashmi Natural. All Rights Reserved.</p>
         <p style="margin-top: 5px; font-size: 14px;">
-            WhatsApp Us: <strong>0312-8538441</strong> | 
+            WhatsApp Us: <strong>0312-8538441</strong> | Email: <strong>a23158700@gmail.com</strong> | 
             <a href="https://whatsapp.com/channel/0029Vb9MK2c6hENu3ydmEH3i" target="_blank" style="color: #25d366; font-weight: bold; text-decoration: none;">
                 Join Official WhatsApp Channel
             </a>
@@ -400,6 +401,29 @@
         </div>
     </div>
 
+    <!-- Order Summary Receipt Modal -->
+    <div id="summary-modal" class="modal">
+        <div class="modal-content" style="border: 2px solid #2c5e3b;">
+            <span class="close-btn" onclick="closeSummaryModal()">&times;</span>
+            <div style="text-align: center; margin-bottom: 15px;">
+                <h2 style="color: #2c5e3b;">🎉 Order Summary</h2>
+                <p style="font-size: 14px; color: #666;">Al Hashmi Natural Receipt</p>
+            </div>
+
+            <div id="summary-details-content" style="background: #f9fdfa; padding: 15px; border-radius: 8px; border: 1px solid #e1ebe3; margin-bottom: 15px; font-size: 14px; line-height: 1.8;">
+                <!-- Dynamically filled by JS -->
+            </div>
+
+            <a id="whatsapp-order-link" href="#" target="_blank" style="display: block; text-align: center; background-color: #25d366; color: white; text-decoration: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 15px; margin-bottom: 10px;">
+                💬 Send Order Details via WhatsApp
+            </a>
+            
+            <button onclick="closeSummaryModal()" style="background: #2c5e3b; color: white; border: none; width: 100%; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">
+                Done
+            </button>
+        </div>
+    </div>
+
     <!-- Logic Script -->
     <script>
     let cart = [];
@@ -427,7 +451,6 @@
         container.style.gap = "25px";
         container.style.padding = "20px 0";
 
-        // Show About Us block on home grid
         const aboutCard = document.getElementById('about');
         if (aboutCard) aboutCard.style.display = "block";
 
@@ -468,7 +491,6 @@
         const container = document.getElementById('product-container');
         if (!container) return;
 
-        // Hide About Us section when viewing individual product details
         const aboutCard = document.getElementById('about');
         if (aboutCard) aboutCard.style.display = "none";
 
@@ -550,12 +572,15 @@
             return;
         }
 
-        let html = '<ul>';
+        let html = '<ul style="list-style: none; padding: 0;">';
         let total = 0;
         cart.forEach(item => {
             const itemTotal = item.price * item.qty;
             total += itemTotal;
-            html += `<li>${item.name} x ${item.qty} = Rs. ${itemTotal}</li>`;
+            html += `<li style="display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dashed #ddd; padding-bottom: 4px;">
+                        <span><strong>${item.name}</strong> (x${item.qty})</span>
+                        <span>Rs. ${itemTotal}</span>
+                     </li>`;
         });
         html += '</ul>';
 
@@ -573,6 +598,11 @@
         if (modal) modal.style.display = 'none';
     }
 
+    function closeSummaryModal() {
+        const modal = document.getElementById('summary-modal');
+        if (modal) modal.style.display = 'none';
+    }
+
     async function handleCheckout(event) {
         event.preventDefault();
 
@@ -581,13 +611,19 @@
             return;
         }
 
+        const name = document.getElementById('cust-name').value;
+        const phone = document.getElementById('cust-phone').value;
+        const city = document.getElementById('cust-city').value;
+        const address = document.getElementById('cust-address').value;
+        const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
         const orderData = {
-            customerName: document.getElementById('cust-name').value,
-            phone: document.getElementById('cust-phone').value,
-            city: document.getElementById('cust-city').value,
-            address: document.getElementById('cust-address').value,
+            customerName: name,
+            phone: phone,
+            city: city,
+            address: address,
             items: cart,
-            totalAmount: cart.reduce((sum, item) => sum + (item.price * item.qty), 0),
+            totalAmount: totalAmount,
             orderDate: new Date().toLocaleString()
         };
 
@@ -599,10 +635,46 @@
             });
 
             if (response.ok) {
-                alert('🎉 Shukriya! Aapka order successfully place ho chuka hai.');
+                // Generate Detailed Order Summary View
+                let itemsSummaryHTML = '<strong>Ordered Products:</strong><ul style="margin: 8px 0; padding-left: 20px;">';
+                let whatsappItemsText = '';
+
+                cart.forEach(item => {
+                    itemsSummaryHTML += `<li>${item.name} - Qty: ${item.qty} (Rs. ${item.price * item.qty})</li>`;
+                    whatsappItemsText += `• ${item.name} (x${item.qty}) - Rs. ${item.price * item.qty}\n`;
+                });
+                itemsSummaryHTML += '</ul>';
+
+                const summaryContent = `
+                    <p><strong>Customer Name:</strong> ${name}</p>
+                    <p><strong>Phone Number:</strong> ${phone}</p>
+                    <p><strong>City:</strong> ${city}</p>
+                    <p><strong>Address:</strong> ${address}</p>
+                    <hr style="margin: 10px 0;">
+                    ${itemsSummaryHTML}
+                    <h3 style="color: #2c5e3b; margin-top: 10px;">Total Bill: Rs. ${totalAmount}</h3>
+                `;
+
+                document.getElementById('summary-details-content').innerHTML = summaryContent;
+
+                // Create Direct WhatsApp Order Message
+                const waMessage = `*New Order - Al Hashmi Natural*\n\n` +
+                                  `*Customer Name:* ${name}\n` +
+                                  `*Phone:* ${phone}\n` +
+                                  `*City:* ${city}\n` +
+                                  `*Address:* ${address}\n\n` +
+                                  `*Items Ordered:*\n${whatsappItemsText}\n` +
+                                  `*Total Amount:* Rs. ${totalAmount}`;
+
+                document.getElementById('whatsapp-order-link').href = `https://wa.me/923128538441?text=${encodeURIComponent(waMessage)}`;
+
+                // Close Cart & Open Order Summary
+                closeCartModal();
+                document.getElementById('summary-modal').style.display = 'flex';
+
+                // Reset Cart & Form
                 cart = [];
                 updateCartUI();
-                closeCartModal();
                 document.getElementById('checkout-form').reset();
             } else {
                 alert('Order submit nahi ho saka. Dobara koshish karein.');
