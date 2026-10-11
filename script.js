@@ -1,51 +1,77 @@
 let cart = [];
 
-// Backend se Products load karna
 async function fetchProducts() {
     try {
         const response = await fetch('/api/products');
-        if (!response.ok) {
-            throw new Error('Network error');
-        }
+        if (!response.ok) throw new Error('Network error');
         const products = await response.json();
         renderProducts(products);
     } catch (error) {
         console.error("Error loading products:", error);
-        document.getElementById('product-container').innerHTML = 
-            '<p style="color:red; font-weight:bold;">Products load nahi ho sake. Server check karein.</p>';
     }
 }
 
-// Products render karna
 function renderProducts(products) {
     const container = document.getElementById('product-container');
     if (!container) return;
     
     container.innerHTML = '';
 
-    if (!products || products.length === 0) {
-        container.innerHTML = '<p>Koi product nahi mila.</p>';
-        return;
-    }
-
     products.forEach(product => {
         const card = document.createElement('div');
         card.className = 'product-card';
+        card.style.border = "1px solid #ddd";
+        card.style.borderRadius = "10px";
+        card.style.padding = "15px";
+        card.style.marginBottom = "20px";
+        card.style.backgroundColor = "#fff";
+        card.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
+
+        // English Benefits
+        const engBenefits = product.descEnglish.benefits.map(b => `<li>${b}</li>`).join('');
+        // Urdu Benefits
+        const urduBenefits = product.descUrdu.benefits.map(b => `<li>${b}</li>`).join('');
+
         card.innerHTML = `
-            <div class="product-image">🌿</div>
-            <div class="product-info">
-                <h3>${product.name}</h3>
-                <div class="product-bottom">
-                    <strong class="price">Rs. ${product.price}</strong>
-                    <button class="add-cart" onclick="addToCart(${product.id}, '${product.name}', ${product.price})">Add to Cart</button>
-                </div>
+            <div style="text-align: center;">
+                <img src="${product.image}" alt="${product.name}" style="max-height: 260px; width: auto; object-fit: contain; border-radius: 8px;">
+            </div>
+            
+            <h2 style="color: #2c5e3b; margin-top: 15px; text-align: center;">${product.name}</h2>
+            <p style="text-align: center; font-weight: bold; color: #e67e22; font-size: 1.2rem;">Rs. ${product.price}</p>
+            
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+
+            <!-- English Description -->
+            <div style="font-size: 14px; color: #333; line-height: 1.5; margin-bottom: 15px;">
+                <h4 style="color: #2c5e3b; margin-bottom: 5px;">${product.descEnglish.subheading}</h4>
+                <p>${product.descEnglish.about}</p>
+                <strong>Key Benefits:</strong>
+                <ul style="padding-left: 20px; margin: 5px 0;">${engBenefits}</ul>
+                <p><strong>Ingredients:</strong> ${product.descEnglish.ingredients}</p>
+                <p><strong>How to Use:</strong> ${product.descEnglish.usage}</p>
+            </div>
+
+            <!-- Urdu Description -->
+            <div style="font-size: 15px; color: #222; line-height: 1.8; direction: rtl; text-align: right; background-color: #f9fdfa; padding: 12px; border-radius: 6px; border-right: 4px solid #2c5e3b;">
+                <h4 style="color: #2c5e3b; margin-bottom: 5px;">${product.descUrdu.subheading}</h4>
+                <p>${product.descUrdu.about}</p>
+                <strong>اہم فوائد:</strong>
+                <ul style="padding-right: 20px; margin: 5px 0;">${urduBenefits}</ul>
+                <p><strong>اجزاء:</strong> ${product.descUrdu.ingredients}</p>
+                <p><strong>طریقۂ استعمال:</strong> ${product.descUrdu.usage}</p>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="addToCart(${product.id}, '${product.name}', ${product.price})" style="background-color: #2c5e3b; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold;">
+                    🛒 Add to Cart (Rs. ${product.price})
+                </button>
             </div>
         `;
         container.appendChild(card);
     });
 }
 
-// Cart Functionality
 function addToCart(id, name, price) {
     const existing = cart.find(item => item.id === id);
     if (existing) {
@@ -96,7 +122,6 @@ function closeCartModal() {
     if (modal) modal.style.display = 'none';
 }
 
-// Checkout Form Submission
 async function handleCheckout(event) {
     event.preventDefault();
 
