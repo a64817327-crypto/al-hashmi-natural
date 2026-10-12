@@ -1,5 +1,5 @@
 let cart = [];
-const DELIVERY_CHARGES = 150; // Nationwide Flat Delivery Fee (Rs. 150)
+const DELIVERY_CHARGES = 150; // Flat Delivery Fee Nationwide (Rs. 150)
 
 async function fetchProducts() {
     try {
@@ -41,7 +41,7 @@ function renderProducts(products) {
             
             <hr style="border: 0; border-top: 1px solid #eee; margin: 18px 0;">
 
-            <!-- English Description (Enhanced Font Size & Headings) -->
+            <!-- English Description -->
             <div style="font-size: 15px; color: #2d3748; line-height: 1.7; margin-bottom: 20px; font-family: Arial, sans-serif;">
                 <h3 style="color: #2c5e3b; margin-bottom: 8px; font-size: 1.15rem; font-weight: 700;">${product.descEnglish.subheading}</h3>
                 <p style="margin-bottom: 12px; color: #4a5568; font-size: 15px;">${product.descEnglish.about}</p>
@@ -166,6 +166,7 @@ async function handleCheckout(event) {
         orderDate: new Date().toLocaleString()
     };
 
+    // 1. Post order to backend API
     try {
         await fetch('/api/orders', {
             method: 'POST',
@@ -176,14 +177,20 @@ async function handleCheckout(event) {
         console.error('Error saving order:', error);
     }
 
-    setTimeout(() => {
+    // 2. FORCE OVERRIDE RECEIPT MODAL DOM
+    const updateModalDOM = () => {
         const itemsListHTML = cart.map(item => `<li style="margin-bottom: 4px;">${item.name} - Qty: ${item.qty} (Rs. ${item.price * item.qty})</li>`).join('');
-        
-        const allDivs = Array.from(document.querySelectorAll('div'));
-        const receiptCard = allDivs.find(d => d.innerText && d.innerText.includes('Customer Name:') && d.innerText.includes('Ordered Products:'));
 
-        if (receiptCard) {
-            receiptCard.innerHTML = `
+        // Find Order Summary Box by Searching Content
+        const allDivs = Array.from(document.querySelectorAll('div'));
+        const receiptContainer = allDivs.find(d => 
+            d.innerText && 
+            (d.innerText.includes('Customer Name:') || d.innerText.includes('Ordered Products:')) &&
+            d.children.length > 0
+        );
+
+        if (receiptContainer) {
+            receiptContainer.innerHTML = `
                 <p style="margin: 4px 0;"><strong>Customer Name:</strong> ${name}</p>
                 <p style="margin: 4px 0;"><strong>Phone Number:</strong> ${phone}</p>
                 <p style="margin: 4px 0;"><strong>City:</strong> ${city}</p>
@@ -191,15 +198,23 @@ async function handleCheckout(event) {
                 <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ddd;">
                 <p style="margin: 4px 0; font-weight: bold;">Ordered Products:</p>
                 <ul style="padding-left: 20px; margin: 6px 0;">${itemsListHTML}</ul>
-                <div style="background-color: #f4f8f5; padding: 10px; border-radius: 6px; margin-top: 12px; border: 1px solid #c3e6cb;">
-                    <p style="margin: 3px 0; display: flex; justify-content: space-between;"><span>Items Subtotal:</span> <span>Rs. ${subtotal}</span></p>
-                    <p style="margin: 3px 0; display: flex; justify-content: space-between; color: #2c5e3b;"><span>Delivery Charges (All Pakistan):</span> <span>Rs. ${DELIVERY_CHARGES}</span></p>
+                <div style="background-color: #f4f8f5; padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid #c3e6cb;">
+                    <p style="margin: 3px 0; display: flex; justify-content: space-between; font-size: 14px;"><span>Items Subtotal:</span> <span>Rs. ${subtotal}</span></p>
+                    <p style="margin: 3px 0; display: flex; justify-content: space-between; color: #2c5e3b; font-size: 14px;"><span>Delivery Charges (All Pakistan):</span> <span>Rs. ${DELIVERY_CHARGES}</span></p>
                     <hr style="margin: 6px 0; border: 0; border-top: 1px solid #a3cfbb;">
-                    <h4 style="color: #2c5e3b; margin: 4px 0 0 0; font-size: 1.1rem; display: flex; justify-content: space-between;"><span>Total Bill:</span> <span>Rs. ${grandTotal}</span></h4>
+                    <h4 style="color: #2c5e3b; margin: 4px 0 0 0; font-size: 1.15rem; display: flex; justify-content: space-between;"><span>Total Bill:</span> <span>Rs. ${grandTotal}</span></h4>
                 </div>
             `;
         }
 
+        // Search for explicit 'Total Bill' text nodes if present
+        allDivs.forEach(div => {
+            if (div.children.length === 0 && div.innerText && div.innerText.includes('Total Bill:')) {
+                div.innerHTML = `<strong>Total Bill (inc. Rs. ${DELIVERY_CHARGES} Delivery): Rs. ${grandTotal}</strong>`;
+            }
+        });
+
+        // 3. Set WhatsApp Link URL
         const itemsText = cart.map(item => `• ${item.name} (x${item.qty}) - Rs. ${item.price * item.qty}`).join('\n');
         const whatsappMessage = `*New Order Received - Al Hashmi Natural*\n\n*Customer Name:* ${name}\n*Phone:* ${phone}\n*City:* ${city}\n*Address:* ${address}\n\n*Items Ordered:*\n${itemsText}\n\n*Subtotal:* Rs. ${subtotal}\n*Delivery Charges (All Pakistan):* Rs. ${DELIVERY_CHARGES}\n*Total Amount:* Rs. ${grandTotal}`;
         const encodedURL = `https://wa.me/923128538441?text=${encodeURIComponent(whatsappMessage)}`;
@@ -218,12 +233,15 @@ async function handleCheckout(event) {
                 };
             }
         });
+    };
 
-        closeCartModal();
-        cart = [];
-        updateCartUI();
-        if (document.getElementById('checkout-form')) document.getElementById('checkout-form').reset();
-    }, 100);
+    closeCartModal();
+    updateModalDOM();
+    
+    // Clear cart after modal DOM update
+    cart = [];
+    updateCartUI();
+    if (document.getElementById('checkout-form')) document.getElementById('checkout-form').reset();
 }
 
 document.addEventListener('DOMContentLoaded', fetchProducts);
