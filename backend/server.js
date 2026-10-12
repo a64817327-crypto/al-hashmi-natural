@@ -12,6 +12,9 @@ app.use(express.static(path.join(__dirname, '../')));
 app.use('/Product Images', express.static(path.join(__dirname, '../Product Images')));
 app.use('/Product%20Images', express.static(path.join(__dirname, '../Product Images')));
 
+// Standard Flat Delivery Charges for All Over Pakistan
+const DELIVERY_CHARGES = 499;
+
 // Store received orders in memory
 let savedOrders = [];
 
@@ -124,15 +127,27 @@ const products = [
 
 // API Endpoints
 app.get('/api/products', (req, res) => {
-    res.json(products);
+    res.json({
+        products: products,
+        deliveryCharges: DELIVERY_CHARGES
+    });
 });
 
 // Save New Order
 app.post('/api/orders', (req, res) => {
     const newOrder = req.body;
+    
+    // Automatically attach flat Delivery Charges
+    newOrder.deliveryCharges = DELIVERY_CHARGES;
+    
+    // Calculate total if not provided correctly
+    const itemsTotal = (newOrder.items || []).reduce((acc, item) => acc + (item.price * item.qty), 0);
+    newOrder.subtotal = itemsTotal;
+    newOrder.totalAmount = itemsTotal + DELIVERY_CHARGES;
+
     savedOrders.unshift(newOrder); // Save newest order first
-    console.log('New Order Received:', newOrder);
-    res.status(200).json({ message: 'Order received successfully!' });
+    console.log('New Order Received with Delivery Charges:', newOrder);
+    res.status(200).json({ message: 'Order received successfully!', deliveryCharges: DELIVERY_CHARGES });
 });
 
 // View All Orders (Admin API)
@@ -153,6 +168,7 @@ app.get('/admin', (req, res) => {
                 .order-card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 15px; border-left: 6px solid #2c5e3b; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
                 .order-card h3 { color: #2c5e3b; margin-top: 0; }
                 ul { margin: 8px 0; padding-left: 20px; }
+                .price-breakdown { background: #f9f9f9; padding: 10px; border-radius: 5px; margin-top: 10px; }
             </style>
         </head>
         <body>
@@ -160,16 +176,20 @@ app.get('/admin', (req, res) => {
             ${savedOrders.length === 0 ? '<p>Abhi tak koi order nahi aaya hai.</p>' : ''}
             ${savedOrders.map(o => `
                 <div class="order-card">
-                    <h3>Order Date: ${o.orderDate}</h3>
+                    <h3>Order Date: ${o.orderDate || new Date().toLocaleString()}</h3>
                     <p><strong>Customer Name:</strong> ${o.customerName}</p>
                     <p><strong>Phone:</strong> ${o.phone}</p>
                     <p><strong>City:</strong> ${o.city}</p>
                     <p><strong>Address:</strong> ${o.address}</p>
                     <p><strong>Ordered Items:</strong></p>
                     <ul>
-                        ${o.items.map(item => `<li>${item.name} x${item.qty} = Rs. ${item.price * item.qty}</li>`).join('')}
+                        ${(o.items || []).map(item => `<li>${item.name} x${item.qty} = Rs. ${item.price * item.qty}</li>`).join('')}
                     </ul>
-                    <h4 style="color:#2c5e3b;">Total Amount: Rs. ${o.totalAmount}</h4>
+                    <div class="price-breakdown">
+                        <p style="margin: 3px 0;"><strong>Subtotal:</strong> Rs. ${o.subtotal || (o.items || []).reduce((acc, item) => acc + (item.price * item.qty), 0)}</p>
+                        <p style="margin: 3px 0;"><strong>Delivery Charges (All Pakistan):</strong> Rs. ${o.deliveryCharges || DELIVERY_CHARGES}</p>
+                        <h4 style="color:#2c5e3b; margin: 8px 0 0 0;">Total Payable: Rs. ${o.totalAmount}</h4>
+                    </div>
                 </div>
             `).join('')}
         </body>
