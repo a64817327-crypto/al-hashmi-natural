@@ -5,12 +5,12 @@ const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
 
-// 1. Serve static files from root directory
-app.use(express.static(path.join(__dirname, '../')));
+// 1. Serve static files from root directory (process.cwd() for Vercel)
+app.use(express.static(process.cwd()));
 
-// 2. Serve product images folder specifically for Vercel
-app.use('/Product Images', express.static(path.join(__dirname, '../Product Images')));
-app.use('/Product%20Images', express.static(path.join(__dirname, '../Product Images')));
+// 2. Serve product images folder specifically for Vercel Serverless Function
+app.use('/Product Images', express.static(path.join(process.cwd(), 'Product Images')));
+app.use('/Product%20Images', express.static(path.join(process.cwd(), 'Product Images')));
 
 // Standard Flat Delivery Charges for All Over Pakistan
 const DELIVERY_CHARGES = 499;
@@ -125,7 +125,7 @@ const products = [
     }
 ];
 
-// API Endpoints - Frontend compatibility ke liye array return ho raha hai
+// API Endpoints
 app.get('/api/products', (req, res) => {
     res.json(products);
 });
@@ -196,7 +196,7 @@ app.get('/admin', (req, res) => {
 
 // Serve main page
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../index.html'));
+    res.sendFile(path.join(process.cwd(), 'index.html'));
 });
 
 // Export app for Vercel Serverless Function
