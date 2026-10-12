@@ -125,12 +125,9 @@ const products = [
     }
 ];
 
-// API Endpoints
+// API Endpoints - Frontend compatibility ke liye array return ho raha hai
 app.get('/api/products', (req, res) => {
-    res.json({
-        products: products,
-        deliveryCharges: DELIVERY_CHARGES
-    });
+    res.json(products);
 });
 
 // Save New Order
@@ -140,12 +137,12 @@ app.post('/api/orders', (req, res) => {
     // Automatically attach flat Delivery Charges
     newOrder.deliveryCharges = DELIVERY_CHARGES;
     
-    // Calculate total if not provided correctly
+    // Calculate total
     const itemsTotal = (newOrder.items || []).reduce((acc, item) => acc + (item.price * item.qty), 0);
     newOrder.subtotal = itemsTotal;
     newOrder.totalAmount = itemsTotal + DELIVERY_CHARGES;
 
-    savedOrders.unshift(newOrder); // Save newest order first
+    savedOrders.unshift(newOrder);
     console.log('New Order Received with Delivery Charges:', newOrder);
     res.status(200).json({ message: 'Order received successfully!', deliveryCharges: DELIVERY_CHARGES });
 });
