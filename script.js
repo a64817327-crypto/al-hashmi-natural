@@ -142,14 +142,19 @@ async function handleCheckout(event) {
         return;
     }
 
+    const name = document.getElementById('cust-name').value;
+    const phone = document.getElementById('cust-phone').value;
+    const city = document.getElementById('cust-city').value;
+    const address = document.getElementById('cust-address').value;
+
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
     const grandTotal = subtotal + DELIVERY_CHARGES;
 
     const orderData = {
-        customerName: document.getElementById('cust-name').value,
-        phone: document.getElementById('cust-phone').value,
-        city: document.getElementById('cust-city').value,
-        address: document.getElementById('cust-address').value,
+        customerName: name,
+        phone: phone,
+        city: city,
+        address: address,
         items: cart,
         subtotal: subtotal,
         deliveryCharges: DELIVERY_CHARGES,
@@ -157,26 +162,46 @@ async function handleCheckout(event) {
         orderDate: new Date().toLocaleString()
     };
 
+    // 1. Send Order Data to Backend API
     try {
-        const response = await fetch('/api/orders', {
+        await fetch('/api/orders', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(orderData)
         });
-
-        if (response.ok) {
-            alert(`🎉 Shukriya! Aapka order successfully place ho chuka hai.\nTotal Amount (inc. Rs. 499 Delivery): Rs. ${grandTotal}`);
-            cart = [];
-            updateCartUI();
-            closeCartModal();
-            document.getElementById('checkout-form').reset();
-        } else {
-            alert('Order submit nahi ho saka. Dobara koshish karein.');
-        }
     } catch (error) {
-        console.error('Error submitting order:', error);
-        alert('Server error: Order place nahi ho saka.');
+        console.error('Error saving order to database:', error);
     }
+
+    // 2. Send Formatted WhatsApp Message (with Delivery Charges)
+    const itemsText = cart.map(item => `• ${item.name} (x${item.qty}) - Rs. ${item.price * item.qty}`).join('\n');
+    
+    const whatsappMessage = `*New Order Received - Al Hashmi Natural*
+
+*Customer Name:* ${name}
+*Phone:* ${phone}
+*City:* ${city}
+*Address:* ${address}
+
+*Items Ordered:*
+${itemsText}
+
+*Subtotal:* Rs. ${subtotal}
+*Delivery Charges (All Pakistan):* Rs. ${DELIVERY_CHARGES}
+*Total Amount:* Rs. ${grandTotal}`;
+
+    const whatsappNumber = "923128538441"; // Aapka Business WhatsApp Number
+    const encodedURL = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
+
+    // Reset Cart & UI
+    alert(`🎉 Shukriya! Aapka order receive ho chuka hai.\nWhatsApp message khul raha hai...`);
+    cart = [];
+    updateCartUI();
+    closeCartModal();
+    document.getElementById('checkout-form').reset();
+
+    // Redirect to WhatsApp
+    window.open(encodedURL, '_blank');
 }
 
 document.addEventListener('DOMContentLoaded', fetchProducts);
