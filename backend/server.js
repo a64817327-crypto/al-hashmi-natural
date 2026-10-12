@@ -18,12 +18,12 @@ const DELIVERY_CHARGES = 150;
 // Store received orders in memory
 let savedOrders = [];
 
-// Updated Products Array (Only English Names & Updated Prices)
+// Real Products Full Detailed Data with Updated Prices
 const products = [
     {
         id: 1,
         name: "Sharbat Aksir-e-Jism",
-        price: 780,
+        price: 680,
         image: "/Product Images/Aksir-e-Jism.jpeg",
         descEnglish: {
             subheading: "A Herbal Fruit Tonic for Women, Men & Children (Size: 240 ml)",
@@ -59,7 +59,7 @@ const products = [
     {
         id: 2,
         name: "Almond & Amla Hair Oil",
-        price: 670,
+        price: 580,
         image: "/Product Images/Almond & Amla Hair Oil.jpeg",
         descEnglish: {
             subheading: "Traditional Herbal Blend for Long, Thick & Strong Hair",
@@ -92,7 +92,7 @@ const products = [
     {
         id: 3,
         name: "Rogan-e-Damagi",
-        price: 820,
+        price: 720,
         image: "/Product Images/Rogan-e-Damagi.jpeg",
         descEnglish: {
             subheading: "Ideal Herbal Tonic Oil for Hair & Brain",
@@ -167,7 +167,8 @@ app.get('/admin', (req, res) => {
         </head>
         <body>
             <h1>📦 Received Orders (${savedOrders.length})</h1>
-            ${savedOrders.length === 0 ? '<p>Abhi tak koi order nahi aaya hai.</p>' : ''}${savedOrders.map(o => `
+            ${savedOrders.length === 0 ? '<p>Abhi tak koi order nahi aaya hai.</p>' : ''}
+            ${savedOrders.map(o => `
                 <div class="order-card">
                     <h3>Order Date: ${o.orderDate || new Date().toLocaleString()}</h3>
                     <p><strong>Customer Name:</strong> ${o.customerName}</p>
@@ -176,7 +177,7 @@ app.get('/admin', (req, res) => {
                     <p><strong>Address:</strong> ${o.address}</p>
                     <p><strong>Ordered Items:</strong></p>
                     <ul>
-                        ${(o.items || []).map(item => `<li>${item.name} x${item.qty} = Rs.${item.price * item.qty}</li>`).join('')}
+                        ${(o.items || []).map(item => `<li>${item.name} x${item.qty} = Rs. ${item.price * item.qty}</li>`).join('')}
                     </ul>
                     <div class="price-breakdown">
                         <p style="margin: 3px 0;"><strong>Subtotal:</strong> Rs. ${o.subtotal || (o.items || []).reduce((acc, item) => acc + (item.price * item.qty), 0)}</p>
