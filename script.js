@@ -1,4 +1,5 @@
 let cart = [];
+const DELIVERY_CHARGES = 499; // Flat Delivery Fee Nationwide
 
 async function fetchProducts() {
     try {
@@ -99,17 +100,28 @@ function updateCartUI() {
         return;
     }
 
-    let html = '<ul>';
-    let total = 0;
+    let subtotal = 0;
+    let html = '<ul style="list-style: none; padding: 0;">';
     cart.forEach(item => {
         const itemTotal = item.price * item.qty;
-        total += itemTotal;
-        html += `<li>${item.name} x ${item.qty} = Rs. ${itemTotal}</li>`;
+        subtotal += itemTotal;
+        html += `<li style="margin-bottom: 8px; border-bottom: 1px dashed #eee; padding-bottom: 5px;">${item.name} x ${item.qty} = <strong>Rs. ${itemTotal}</strong></li>`;
     });
     html += '</ul>';
 
+    // Breakdown with Rs. 499 Delivery Charges
+    const grandTotal = subtotal + DELIVERY_CHARGES;
+    html += `
+        <div style="background-color: #f8f9fa; padding: 12px; border-radius: 6px; margin-top: 15px; border: 1px solid #e2e8f0;">
+            <p style="margin: 4px 0; display: flex; justify-content: space-between;"><span>Items Subtotal:</span> <span>Rs. ${subtotal}</span></p>
+            <p style="margin: 4px 0; display: flex; justify-content: space-between; color: #2c5e3b;"><span>Delivery Charges (All Pakistan):</span> <span>Rs. ${DELIVERY_CHARGES}</span></p>
+            <hr style="margin: 8px 0; border: 0; border-top: 1px solid #cbd5e1;">
+            <p style="margin: 4px 0; font-size: 1.1rem; font-weight: bold; color: #2c5e3b; display: flex; justify-content: space-between;"><span>Total Payable:</span> <span>Rs. ${grandTotal}</span></p>
+        </div>
+    `;
+
     list.innerHTML = html;
-    if (totalPriceEl) totalPriceEl.innerText = total;
+    if (totalPriceEl) totalPriceEl.innerText = grandTotal;
 }
 
 function openCartModal() {
@@ -130,13 +142,18 @@ async function handleCheckout(event) {
         return;
     }
 
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const grandTotal = subtotal + DELIVERY_CHARGES;
+
     const orderData = {
         customerName: document.getElementById('cust-name').value,
         phone: document.getElementById('cust-phone').value,
         city: document.getElementById('cust-city').value,
         address: document.getElementById('cust-address').value,
         items: cart,
-        totalAmount: cart.reduce((sum, item) => sum + (item.price * item.qty), 0),
+        subtotal: subtotal,
+        deliveryCharges: DELIVERY_CHARGES,
+        totalAmount: grandTotal,
         orderDate: new Date().toLocaleString()
     };
 
@@ -148,7 +165,7 @@ async function handleCheckout(event) {
         });
 
         if (response.ok) {
-            alert('🎉 Shukriya! Aapka order successfully place ho chuka hai.');
+            alert(`🎉 Shukriya! Aapka order successfully place ho chuka hai.\nTotal Amount (inc. Rs. 499 Delivery): Rs. ${grandTotal}`);
             cart = [];
             updateCartUI();
             closeCartModal();
