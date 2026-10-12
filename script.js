@@ -1,5 +1,5 @@
 let cart = [];
-const DELIVERY_CHARGES = 499; // Flat Delivery Fee Nationwide
+const DELIVERY_CHARGES = 150; // Updated Nationwide Flat Delivery Charges
 
 async function fetchProducts() {
     try {
@@ -28,9 +28,7 @@ function renderProducts(products) {
         card.style.backgroundColor = "#fff";
         card.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
 
-        // English Benefits
         const engBenefits = product.descEnglish.benefits.map(b => `<li>${b}</li>`).join('');
-        // Urdu Benefits
         const urduBenefits = product.descUrdu.benefits.map(b => `<li>${b}</li>`).join('');
 
         card.innerHTML = `
@@ -43,7 +41,6 @@ function renderProducts(products) {
             
             <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
 
-            <!-- English Description -->
             <div style="font-size: 14px; color: #333; line-height: 1.5; margin-bottom: 15px;">
                 <h4 style="color: #2c5e3b; margin-bottom: 5px;">${product.descEnglish.subheading}</h4>
                 <p>${product.descEnglish.about}</p>
@@ -53,7 +50,6 @@ function renderProducts(products) {
                 <p><strong>How to Use:</strong> ${product.descEnglish.usage}</p>
             </div>
 
-            <!-- Urdu Description -->
             <div style="font-size: 15px; color: #222; line-height: 1.8; direction: rtl; text-align: right; background-color: #f9fdfa; padding: 12px; border-radius: 6px; border-right: 4px solid #2c5e3b;">
                 <h4 style="color: #2c5e3b; margin-bottom: 5px;">${product.descUrdu.subheading}</h4>
                 <p>${product.descUrdu.about}</p>
@@ -141,10 +137,10 @@ async function handleCheckout(event) {
         return;
     }
 
-    const name = document.getElementById('cust-name').value;
-    const phone = document.getElementById('cust-phone').value;
-    const city = document.getElementById('cust-city').value;
-    const address = document.getElementById('cust-address').value;
+    const name = document.getElementById('cust-name') ? document.getElementById('cust-name').value : '';
+    const phone = document.getElementById('cust-phone') ? document.getElementById('cust-phone').value : '';
+    const city = document.getElementById('cust-city') ? document.getElementById('cust-city').value : '';
+    const address = document.getElementById('cust-address') ? document.getElementById('cust-address').value : '';
 
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
     const grandTotal = subtotal + DELIVERY_CHARGES;
@@ -161,7 +157,7 @@ async function handleCheckout(event) {
         orderDate: new Date().toLocaleString()
     };
 
-    // 1. Send Order to Backend API
+    // 1. Backend Save
     try {
         await fetch('/api/orders', {
             method: 'POST',
@@ -172,45 +168,54 @@ async function handleCheckout(event) {
         console.error('Error saving order:', error);
     }
 
-    // 2. Dynamic Order Summary Receipt Update
-    const summaryContainer = document.querySelector('.order-card-summary') || document.querySelector('.order-summary') || document.getElementById('order-receipt-details');
-    if (summaryContainer) {
-        const itemsList = cart.map(item => `<li>${item.name} - Qty: ${item.qty} (Rs. ${item.price * item.qty})</li>`).join('');
-        summaryContainer.innerHTML = `
-            <p><strong>Customer Name:</strong> ${name}</p>
-            <p><strong>Phone Number:</strong> ${phone}</p>
-            <p><strong>City:</strong> ${city}</p>
-            <p><strong>Address:</strong> ${address}</p>
-            <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ddd;">
-            <p><strong>Ordered Products:</strong></p>
-            <ul style="padding-left: 20px; margin-bottom: 10px;">${itemsList}</ul>
-            <div style="background-color: #f4f8f5; padding: 12px; border-radius: 6px; border: 1px solid #d1e7dd;">
-                <p style="margin: 3px 0; display: flex; justify-content: space-between;"><span>Subtotal:</span> <span>Rs. ${subtotal}</span></p>
-                <p style="margin: 3px 0; display: flex; justify-content: space-between; color: #2c5e3b;"><span>Delivery Charges (All Pakistan):</span> <span>Rs. ${DELIVERY_CHARGES}</span></p>
-                <hr style="margin: 6px 0; border: 0; border-top: 1px solid #a3cfbb;">
-                <h4 style="color: #2c5e3b; margin: 4px 0 0 0; display: flex; justify-content: space-between;"><span>Total Bill:</span> <span>Rs. ${grandTotal}</span></h4>
-            </div>
-        `;
-    }
+    // 2. Override Order Summary Receipt Modal DOM
+    const modalCards = document.querySelectorAll('div');
+    modalCards.forEach(div => {
+        if (div.innerText && div.innerText.includes('Customer Name:') && div.innerText.includes('Ordered Products:')) {
+            const itemsList = cart.map(item => `<li>${item.name} - Qty: ${item.qty} (Rs. ${item.price * item.qty})</li>`).join('');
+            div.innerHTML = `
+                <p style="margin: 4px 0;"><strong>Customer Name:</strong> ${name}</p>
+                <p style="margin: 4px 0;"><strong>Phone Number:</strong> ${phone}</p>
+                <p style="margin: 4px 0;"><strong>City:</strong> ${city}</p>
+                <p style="margin: 4px 0;"><strong>Address:</strong> ${address}</p>
+                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ddd;">
+                <p style="margin: 4px 0;"><strong>Ordered Products:</strong></p>
+                <ul style="padding-left: 20px; margin: 6px 0;">${itemsList}</ul>
+                <div style="background-color: #f4f8f5; padding: 10px; border-radius: 6px; margin-top: 10px; border: 1px solid #c3e6cb;">
+                    <p style="margin: 2px 0; display: flex; justify-content: space-between;"><span>Items Subtotal:</span> <span>Rs. ${subtotal}</span></p>
+                    <p style="margin: 2px 0; display: flex; justify-content: space-between; color: #2c5e3b;"><span>Delivery Charges (All Pakistan):</span> <span>Rs. ${DELIVERY_CHARGES}</span></p>
+                    <hr style="margin: 6px 0; border: 0; border-top: 1px solid #a3cfbb;">
+                    <h4 style="color: #2c5e3b; margin: 6px 0 0 0; font-size: 1.1rem; display: flex; justify-content: space-between;"><span>Total Bill:</span> <span>Rs. ${grandTotal}</span></h4>
+                </div>
+            `;
+        }
+    });
 
-    // 3. Prepare WhatsApp Redirection
+    // 3. Format WhatsApp Message
     const itemsText = cart.map(item => `• ${item.name} (x${item.qty}) - Rs. ${item.price * item.qty}`).join('\n');
     const whatsappMessage = `*New Order Received - Al Hashmi Natural*\n\n*Customer Name:* ${name}\n*Phone:* ${phone}\n*City:* ${city}\n*Address:* ${address}\n\n*Items Ordered:*\n${itemsText}\n\n*Subtotal:* Rs. ${subtotal}\n*Delivery Charges (All Pakistan):* Rs. ${DELIVERY_CHARGES}\n*Total Amount:* Rs. ${grandTotal}`;
-    
-    const whatsappBtn = document.getElementById('whatsapp-share-btn') || document.querySelector('button[onclick*="whatsapp"]') || document.querySelector('.whatsapp-btn');
-    if (whatsappBtn) {
-        whatsappBtn.onclick = function() {
-            window.open(`https://wa.me/923128538441?text=${encodeURIComponent(whatsappMessage)}`, '_blank');
-        };
-    }
+    const encodedURL = `https://wa.me/923128538441?text=${encodeURIComponent(whatsappMessage)}`;
+
+    // Bind Action to WhatsApp & Done buttons
+    const allButtons = document.querySelectorAll('button, a');
+    allButtons.forEach(btn => {
+        if (btn.innerText && btn.innerText.toLowerCase().includes('whatsapp')) {
+            btn.onclick = function(e) {
+                e.preventDefault();
+                window.open(encodedURL, '_blank');
+            };
+        }
+        if (btn.innerText && btn.innerText.toLowerCase().includes('done')) {
+            btn.onclick = function() {
+                location.reload();
+            };
+        }
+    });
 
     closeCartModal();
     cart = [];
     updateCartUI();
     if (document.getElementById('checkout-form')) document.getElementById('checkout-form').reset();
-
-    const summaryModal = document.getElementById('receipt-modal') || document.getElementById('summary-modal') || document.getElementById('order-summary-modal');
-    if (summaryModal) summaryModal.style.display = 'flex';
 }
 
 document.addEventListener('DOMContentLoaded', fetchProducts);

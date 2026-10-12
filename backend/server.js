@@ -12,14 +12,18 @@ app.use(express.static(process.cwd()));
 app.use('/Product Images', express.static(path.join(process.cwd(), 'Product Images')));
 app.use('/Product%20Images', express.static(path.join(process.cwd(), 'Product Images')));
 
-const DELIVERY_CHARGES = 499;
+// Updated Nationwide Flat Delivery Charges (Rs. 150)
+const DELIVERY_CHARGES = 150;
+
+// Store received orders in memory
 let savedOrders = [];
 
+// Real Products Full Detailed Data (Sharbat Aksir-e-Jism updated to Rs. 780)
 const products = [
     {
         id: 1,
         name: "Sharbat Aksir-e-Jism (شربت اکسیرِ جسم)",
-        price: 980,
+        price: 780,
         image: "/Product Images/Aksir-e-Jism.jpeg",
         descEnglish: {
             subheading: "A Herbal Fruit Tonic for Women, Men & Children (Size: 240 ml)",
@@ -121,13 +125,17 @@ const products = [
     }
 ];
 
+// API Endpoints
 app.get('/api/products', (req, res) => {
     res.json(products);
 });
 
+// Save New Order with Rs. 150 Delivery Charges
 app.post('/api/orders', (req, res) => {
     const newOrder = req.body;
+    
     newOrder.deliveryCharges = DELIVERY_CHARGES;
+    
     const itemsTotal = (newOrder.items || []).reduce((acc, item) => acc + (item.price * item.qty), 0);
     newOrder.subtotal = itemsTotal;
     newOrder.totalAmount = itemsTotal + DELIVERY_CHARGES;
@@ -136,10 +144,12 @@ app.post('/api/orders', (req, res) => {
     res.status(200).json({ message: 'Order received successfully!', deliveryCharges: DELIVERY_CHARGES });
 });
 
+// View All Orders (Admin API)
 app.get('/api/admin/orders', (req, res) => {
     res.json(savedOrders);
 });
 
+// Admin Page
 app.get('/admin', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -181,6 +191,7 @@ app.get('/admin', (req, res) => {
     `);
 });
 
+// Serve main page
 app.get('/', (req, res) => {
     res.sendFile(path.join(process.cwd(), 'index.html'));
 });
