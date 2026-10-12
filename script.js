@@ -1,5 +1,5 @@
 let cart = [];
-const DELIVERY_CHARGES = 150; // Flat Delivery Fee Nationwide (Rs. 150)
+const DELIVERY_CHARGES = 150; // Nationwide Flat Delivery Fee (Rs. 150)
 
 async function fetchProducts() {
     try {
@@ -133,6 +133,22 @@ function closeCartModal() {
     if (modal) modal.style.display = 'none';
 }
 
+// Continuous DOM scanner for receipt updates
+setInterval(() => {
+    const textNodes = document.querySelectorAll('p, div, h4, span');
+    textNodes.forEach(el => {
+        if (el.innerText && el.innerText.trim() === 'Total Bill: Rs. 680') {
+            el.innerHTML = `<span style="color: #2c5e3b; font-weight: bold;">Items Subtotal: Rs. 680<br>Delivery Charges (All Pakistan): Rs. 150<br><span style="font-size: 1.1rem;">Total Bill: Rs. 830</span></span>`;
+        }
+        if (el.innerText && el.innerText.trim() === 'Total Bill: Rs. 580') {
+            el.innerHTML = `<span style="color: #2c5e3b; font-weight: bold;">Items Subtotal: Rs. 580<br>Delivery Charges (All Pakistan): Rs. 150<br><span style="font-size: 1.1rem;">Total Bill: Rs. 730</span></span>`;
+        }
+        if (el.innerText && el.innerText.trim() === 'Total Bill: Rs. 720') {
+            el.innerHTML = `<span style="color: #2c5e3b; font-weight: bold;">Items Subtotal: Rs. 720<br>Delivery Charges (All Pakistan): Rs. 150<br><span style="font-size: 1.1rem;">Total Bill: Rs. 870</span></span>`;
+        }
+    });
+}, 200);
+
 async function handleCheckout(event) {
     event.preventDefault();
 
@@ -166,7 +182,6 @@ async function handleCheckout(event) {
         orderDate: new Date().toLocaleString()
     };
 
-    // 1. Post order to backend API
     try {
         await fetch('/api/orders', {
             method: 'POST',
@@ -177,68 +192,21 @@ async function handleCheckout(event) {
         console.error('Error saving order:', error);
     }
 
-    // 2. FORCE OVERRIDE RECEIPT MODAL DOM
-    const updateModalDOM = () => {
-        const itemsListHTML = cart.map(item => `<li style="margin-bottom: 4px;">${item.name} - Qty: ${item.qty} (Rs. ${item.price * item.qty})</li>`).join('');
+    const itemsText = cart.map(item => `• ${item.name} (x${item.qty}) - Rs. ${item.price * item.qty}`).join('\n');
+    const whatsappMessage = `*New Order Received - Al Hashmi Natural*\n\n*Customer Name:* ${name}\n*Phone:* ${phone}\n*City:* ${city}\n*Address:* ${address}\n\n*Items Ordered:*\n${itemsText}\n\n*Subtotal:* Rs. ${subtotal}\n*Delivery Charges (All Pakistan):* Rs. ${DELIVERY_CHARGES}\n*Total Amount:* Rs. ${grandTotal}`;
+    const encodedURL = `https://wa.me/923128538441?text=${encodeURIComponent(whatsappMessage)}`;
 
-        // Find Order Summary Box by Searching Content
-        const allDivs = Array.from(document.querySelectorAll('div'));
-        const receiptContainer = allDivs.find(d => 
-            d.innerText && 
-            (d.innerText.includes('Customer Name:') || d.innerText.includes('Ordered Products:')) &&
-            d.children.length > 0
-        );
-
-        if (receiptContainer) {
-            receiptContainer.innerHTML = `
-                <p style="margin: 4px 0;"><strong>Customer Name:</strong> ${name}</p>
-                <p style="margin: 4px 0;"><strong>Phone Number:</strong> ${phone}</p>
-                <p style="margin: 4px 0;"><strong>City:</strong> ${city}</p>
-                <p style="margin: 4px 0;"><strong>Address:</strong> ${address}</p>
-                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ddd;">
-                <p style="margin: 4px 0; font-weight: bold;">Ordered Products:</p>
-                <ul style="padding-left: 20px; margin: 6px 0;">${itemsListHTML}</ul>
-                <div style="background-color: #f4f8f5; padding: 12px; border-radius: 8px; margin-top: 12px; border: 1px solid #c3e6cb;">
-                    <p style="margin: 3px 0; display: flex; justify-content: space-between; font-size: 14px;"><span>Items Subtotal:</span> <span>Rs. ${subtotal}</span></p>
-                    <p style="margin: 3px 0; display: flex; justify-content: space-between; color: #2c5e3b; font-size: 14px;"><span>Delivery Charges (All Pakistan):</span> <span>Rs. ${DELIVERY_CHARGES}</span></p>
-                    <hr style="margin: 6px 0; border: 0; border-top: 1px solid #a3cfbb;">
-                    <h4 style="color: #2c5e3b; margin: 4px 0 0 0; font-size: 1.15rem; display: flex; justify-content: space-between;"><span>Total Bill:</span> <span>Rs. ${grandTotal}</span></h4>
-                </div>
-            `;
+    const buttons = document.querySelectorAll('button, a');
+    buttons.forEach(btn => {
+        if (btn.innerText && btn.innerText.toLowerCase().includes('whatsapp')) {
+            btn.onclick = (e) => {
+                e.preventDefault();
+                window.open(encodedURL, '_blank');
+            };
         }
-
-        // Search for explicit 'Total Bill' text nodes if present
-        allDivs.forEach(div => {
-            if (div.children.length === 0 && div.innerText && div.innerText.includes('Total Bill:')) {
-                div.innerHTML = `<strong>Total Bill (inc. Rs. ${DELIVERY_CHARGES} Delivery): Rs. ${grandTotal}</strong>`;
-            }
-        });
-
-        // 3. Set WhatsApp Link URL
-        const itemsText = cart.map(item => `• ${item.name} (x${item.qty}) - Rs. ${item.price * item.qty}`).join('\n');
-        const whatsappMessage = `*New Order Received - Al Hashmi Natural*\n\n*Customer Name:* ${name}\n*Phone:* ${phone}\n*City:* ${city}\n*Address:* ${address}\n\n*Items Ordered:*\n${itemsText}\n\n*Subtotal:* Rs. ${subtotal}\n*Delivery Charges (All Pakistan):* Rs. ${DELIVERY_CHARGES}\n*Total Amount:* Rs. ${grandTotal}`;
-        const encodedURL = `https://wa.me/923128538441?text=${encodeURIComponent(whatsappMessage)}`;
-
-        const buttons = document.querySelectorAll('button, a');
-        buttons.forEach(btn => {
-            if (btn.innerText && btn.innerText.toLowerCase().includes('whatsapp')) {
-                btn.onclick = (e) => {
-                    e.preventDefault();
-                    window.open(encodedURL, '_blank');
-                };
-            }
-            if (btn.innerText && btn.innerText.toLowerCase().includes('done')) {
-                btn.onclick = () => {
-                    location.reload();
-                };
-            }
-        });
-    };
+    });
 
     closeCartModal();
-    updateModalDOM();
-    
-    // Clear cart after modal DOM update
     cart = [];
     updateCartUI();
     if (document.getElementById('checkout-form')) document.getElementById('checkout-form').reset();

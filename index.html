@@ -428,6 +428,7 @@
     <script>
     let cart = [];
     let allProducts = [];
+    const DELIVERY_CHARGES = 150; // Flat Nationwide Delivery Fee
 
     async function fetchProducts() {
         try {
@@ -474,7 +475,7 @@
                     <button onclick="openProductDetail(${product.id})" style="background-color: #f4f4f4; color: #333; border: 1px solid #ccc; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; flex: 1;">
                         View Details
                     </button>
-                    <button onclick="addToCart(${product.id}, '${product.name}', ${product.price})" style="background-color: #2c5e3b; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; flex: 1;">
+                    <button onclick="addToCart(${product.id}, '${product.name}',${product.price})" style="background-color: #2c5e3b; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; flex: 1;">
                         Add to Cart
                     </button>
                 </div>
@@ -494,8 +495,8 @@
         const aboutCard = document.getElementById('about');
         if (aboutCard) aboutCard.style.display = "none";
 
-        const engBenefits = product.descEnglish.benefits.map(b => `<li>${b}</li>`).join('');
-        const urduBenefits = product.descUrdu.benefits.map(b => `<li>${b}</li>`).join('');
+        const engBenefits = product.descEnglish.benefits.map(b => `<li style="margin-bottom: 6px;">${b}</li>`).join('');
+        const urduBenefits = product.descUrdu.benefits.map(b => `<li style="margin-bottom: 6px;">${b}</li>`).join('');
 
         container.style.display = "block";
         container.innerHTML = `
@@ -510,10 +511,10 @@
                 </div>
 
                 <div style="flex: 1.2; min-width: 300px;">
-                    <h1 style="color: #2c5e3b; margin-top: 0; font-size: 1.8rem;">${product.name}</h1>
-                    <h2 style="color: #2c5e3b; font-size: 1.5rem; margin: 10px 0 20px 0;">Rs. ${product.price}</h2>
+                    <h1 style="color: #2c5e3b; margin-top: 0; font-size: 1.8rem; font-weight: 700;">${product.name}</h1>
+                    <h2 style="color: #e67e22; font-size: 1.5rem; margin: 10px 0 20px 0; font-weight: 800;">Rs. ${product.price}</h2>
 
-                    <button onclick="addToCart(${product.id}, '${product.name}', ${product.price})" style="background-color: #2c5e3b; color: white; border: none; padding: 14px 30px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; margin-bottom: 15px;">
+                    <button onclick="addToCart(${product.id}, '${product.name}',${product.price})" style="background-color: #2c5e3b; color: white; border: none; padding: 14px 30px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; margin-bottom: 15px;">
                         🛒 Add to Cart
                     </button>
 
@@ -521,22 +522,26 @@
                         💬 Order via WhatsApp (0312-8538441)
                     </a>
 
-                    <div style="font-size: 14px; color: #444; line-height: 1.6; margin-bottom: 20px; border-top: 1px solid #eee; padding-top: 15px;">
-                        <h4 style="color: #2c5e3b; margin-bottom: 5px;">${product.descEnglish.subheading}</h4>
-                        <p>${product.descEnglish.about}</p>
-                        <strong>Key Benefits:</strong>
-                        <ul style="padding-left: 20px; margin: 8px 0;">${engBenefits}</ul>
-                        <p><strong>Ingredients:</strong> ${product.descEnglish.ingredients}</p>
-                        <p><strong>How to Use:</strong> ${product.descEnglish.usage}</p>
+                    <!-- English Description (Enhanced Legibility) -->
+                    <div style="font-size: 15px; color: #2d3748; line-height: 1.7; margin-bottom: 20px; border-top: 1px solid #eee; padding-top: 18px; font-family: Arial, sans-serif;">
+                        <h3 style="color: #2c5e3b; margin-bottom: 8px; font-size: 1.15rem; font-weight: 700;">${product.descEnglish.subheading}</h3>
+                        <p style="margin-bottom: 12px; color: #4a5568;">${product.descEnglish.about}</p>
+                        
+                        <h4 style="color: #2c5e3b; margin: 12px 0 6px 0; font-size: 1rem; font-weight: 700;">Key Benefits:</h4>
+                        <ul style="padding-left: 22px; margin: 6px 0 12px 0;">${engBenefits}</ul>
+                        
+                        <p style="margin: 8px 0;"><strong style="color: #2c5e3b;">Ingredients:</strong> <span style="color: #4a5568;">${product.descEnglish.ingredients}</span></p>
+                        <p style="margin: 8px 0;"><strong style="color: #2c5e3b;">How to Use:</strong> <span style="color: #4a5568;">${product.descEnglish.usage}</span></p>
                     </div>
 
+                    <!-- Urdu Description -->
                     <div style="font-size: 15px; color: #222; line-height: 1.8; direction: rtl; text-align: right; background-color: #f9fdfa; padding: 15px; border-radius: 8px; border-right: 4px solid #2c5e3b;">
-                        <h4 style="color: #2c5e3b; margin-bottom: 5px;">${product.descUrdu.subheading}</h4>
-                        <p>${product.descUrdu.about}</p>
-                        <strong>اہم فوائد:</strong>
-                        <ul style="padding-right: 20px; margin: 8px 0;">${urduBenefits}</ul>
-                        <p><strong>اجزاء:</strong> ${product.descUrdu.ingredients}</p>
-                        <p><strong>طریقۂ استعمال:</strong> ${product.descUrdu.usage}</p>
+                        <h3 style="color: #2c5e3b; margin-bottom: 8px; font-size: 1.2rem; font-weight: 700;">${product.descUrdu.subheading}</h3>
+                        <p style="margin-bottom: 10px;">${product.descUrdu.about}</p>
+                        <h4 style="color: #2c5e3b; margin: 10px 0 6px 0; font-size: 1.05rem; font-weight: 700;">اہم فوائد:</h4>
+                        <ul style="padding-right: 22px; margin: 6px 0 10px 0;">${urduBenefits}</ul>
+                        <p style="margin: 6px 0;"><strong>اجزاء:</strong> ${product.descUrdu.ingredients}</p>
+                        <p style="margin: 6px 0;"><strong>طریقۂ استعمال:</strong> ${product.descUrdu.usage}</p>
                     </div>
                 </div>
             </div>
@@ -573,10 +578,10 @@
         }
 
         let html = '<ul style="list-style: none; padding: 0;">';
-        let total = 0;
+        let subtotal = 0;
         cart.forEach(item => {
             const itemTotal = item.price * item.qty;
-            total += itemTotal;
+            subtotal += itemTotal;
             html += `<li style="display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dashed #ddd; padding-bottom: 4px;">
                         <span><strong>${item.name}</strong> (x${item.qty})</span>
                         <span>Rs. ${itemTotal}</span>
@@ -584,8 +589,18 @@
         });
         html += '</ul>';
 
+        const grandTotal = subtotal + DELIVERY_CHARGES;
+        html += `
+            <div style="background-color: #f8f9fa; padding: 10px; border-radius: 6px; margin-top: 12px; border: 1px solid #e2e8f0; font-size: 14px;">
+                <p style="margin: 3px 0; display: flex; justify-content: space-between;"><span>Items Subtotal:</span> <span>Rs. ${subtotal}</span></p>
+                <p style="margin: 3px 0; display: flex; justify-content: space-between; color: #2c5e3b; font-weight: bold;"><span>Delivery Charges (All Pakistan):</span> <span>Rs. ${DELIVERY_CHARGES}</span></p>
+                <hr style="margin: 6px 0; border: 0; border-top: 1px solid #cbd5e1;">
+                <p style="margin: 3px 0; font-size: 1rem; font-weight: bold; color: #2c5e3b; display: flex; justify-content: space-between;"><span>Total Payable:</span> <span>Rs. ${grandTotal}</span></p>
+            </div>
+        `;
+
         list.innerHTML = html;
-        if (totalPriceEl) totalPriceEl.innerText = total;
+        if (totalPriceEl) totalPriceEl.innerText = grandTotal;
     }
 
     function openCartModal() {
@@ -615,7 +630,9 @@
         const phone = document.getElementById('cust-phone').value;
         const city = document.getElementById('cust-city').value;
         const address = document.getElementById('cust-address').value;
-        const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+        
+        const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+        const grandTotal = subtotal + DELIVERY_CHARGES;
 
         const orderData = {
             customerName: name,
@@ -623,7 +640,9 @@
             city: city,
             address: address,
             items: cart,
-            totalAmount: totalAmount,
+            subtotal: subtotal,
+            deliveryCharges: DELIVERY_CHARGES,
+            totalAmount: grandTotal,
             orderDate: new Date().toLocaleString()
         };
 
@@ -635,13 +654,14 @@
             });
 
             if (response.ok) {
-                // Generate Detailed Order Summary View
+                // Generate Detailed Order Summary View with Rs. 150 Delivery Breakdown
                 let itemsSummaryHTML = '<strong>Ordered Products:</strong><ul style="margin: 8px 0; padding-left: 20px;">';
                 let whatsappItemsText = '';
 
                 cart.forEach(item => {
-                    itemsSummaryHTML += `<li>${item.name} - Qty: ${item.qty} (Rs. ${item.price * item.qty})</li>`;
-                    whatsappItemsText += `• ${item.name} (x${item.qty}) - Rs. ${item.price * item.qty}\n`;
+                    const itemTotal = item.price * item.qty;
+                    itemsSummaryHTML += `<li>${item.name} - Qty: ${item.qty} (Rs.${itemTotal})</li>`;
+                    whatsappItemsText += `• ${item.name} (x${item.qty}) - Rs.${itemTotal}\n`;
                 });
                 itemsSummaryHTML += '</ul>';
 
@@ -652,40 +672,6 @@
                     <p><strong>Address:</strong> ${address}</p>
                     <hr style="margin: 10px 0;">
                     ${itemsSummaryHTML}
-                    <h3 style="color: #2c5e3b; margin-top: 10px;">Total Bill: Rs. ${totalAmount}</h3>
-                `;
-
-                document.getElementById('summary-details-content').innerHTML = summaryContent;
-
-                // Create Direct WhatsApp Order Message
-                const waMessage = `*New Order - Al Hashmi Natural*\n\n` +
-                                  `*Customer Name:* ${name}\n` +
-                                  `*Phone:* ${phone}\n` +
-                                  `*City:* ${city}\n` +
-                                  `*Address:* ${address}\n\n` +
-                                  `*Items Ordered:*\n${whatsappItemsText}\n` +
-                                  `*Total Amount:* Rs. ${totalAmount}`;
-
-                document.getElementById('whatsapp-order-link').href = `https://wa.me/923128538441?text=${encodeURIComponent(waMessage)}`;
-
-                // Close Cart & Open Order Summary
-                closeCartModal();
-                document.getElementById('summary-modal').style.display = 'flex';
-
-                // Reset Cart & Form
-                cart = [];
-                updateCartUI();
-                document.getElementById('checkout-form').reset();
-            } else {
-                alert('Order submit nahi ho saka. Dobara koshish karein.');
-            }
-        } catch (error) {
-            console.error('Error submitting order:', error);
-            alert('Server error: Order place nahi ho saka.');
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', fetchProducts);
-    </script>
-</body>
-</html>
+                    <div style="background-color: #f4f8f5; padding: 12px; border-radius: 8px; margin-top: 10px; border: 1px solid #c3e6cb;">
+                        <p style="margin: 2px 0; display: flex; justify-content: space-between;"><span>Items Subtotal:</span> <span>Rs. ${subtotal}</span></p>
+                        <p style="margin: 2px
