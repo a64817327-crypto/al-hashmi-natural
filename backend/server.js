@@ -1,5 +1,7 @@
 const express = require('express');
 const path = require('path');
+const mongoose = require('mongoose');
+const nodemailer = require('nodemailer');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -7,123 +9,131 @@ app.use(express.json());
 
 // Serve static files from root directory
 app.use(express.static(process.cwd()));
-
-// Serve product images specifically for Vercel
 app.use('/Product Images', express.static(path.join(process.cwd(), 'Product Images')));
 app.use('/Product%20Images', express.static(path.join(process.cwd(), 'Product Images')));
 
-// Flat Delivery Charges
 const DELIVERY_CHARGES = 150;
-
-// Store received orders in memory
-let savedOrders = [];
-
-// ADMIN SECRET PASSWORD
 const ADMIN_PASSWORD = "alhashminatural123";
 
-// Real Products Data
-const products = [
-    {
-        id: 1,
-        name: "Sharbat Aksir-e-Jism",
-        price: 680,
-        image: "/Product Images/Aksir-e-Jism.jpeg",
-        descEnglish: {
-            subheading: "A Herbal Fruit Tonic for Women, Men & Children (Size: 240 ml)",
-            about: "Nourish your body the traditional way with Al Hashmi Natural Sharbat Aksir-e-Jism...",
-            benefits: ["Supports people with low blood levels", "Helps reduce tiredness and weakness"],
-            ingredients: "Apple juice, pomegranate juice, grape juice, selected herbs, and iron.",
-            usage: "Take 2 tablespoons 3 times daily with milk or water."
-        },
-        descUrdu: {
-            subheading: "خواتین، مردوں اور بچوں کے لیے بہترین ٹانک",
-            about: "الہاشمی نیچرل شربت اکسیرِ جسم سیب، انار اور انگور کے رس سے تیار کردہ روایتی ہربل ٹانک ہے۔",
-            benefits: ["خون کی کمی اور وزن کی کمی میں مفید", "تھکاوٹ دور کرنے میں مددگار"],
-            ingredients: "سیب، انار، انگور کے رس اور فولاد۔",
-            usage: "صبح، دوپہر اور رات 2 چمچ استعمال کریں۔"
-        }
-    },
-    {
-        id: 2,
-        name: "Almond & Amla Hair Oil",
-        price: 580,
-        image: "/Product Images/Almond & Amla Hair Oil.jpeg",
-        descEnglish: {
-            subheading: "Traditional Herbal Blend for Long, Thick & Strong Hair",
-            about: "Give your hair the natural care it deserves with Al Hashmi Natural Almond & Amla Hair Oil...",
-            benefits: ["Helps promote long and thick hair", "Strengthens hair roots"],
-            ingredients: "Almond oil, Amla, coconut oil, castor oil, olive oil.",
-            usage: "Massage gently into scalp. Wash after 1-2 hours."
-        },
-        descUrdu: {
-            subheading: "خالص جڑی بوٹیوں سے تیار کردہ روایتی ہربل آئل",
-            about: "اپنے بالوں کو دیں قدرتی نگہداشت الہاشمی نیچرل آملہ + بادام ہیئر آئل کے ساتھ۔",
-            benefits: ["بالوں کو لمبا اور گھنا بنانے میں معاون", "گرتے بالوں کو روکتا hai"],
-            ingredients: "روغنِ بادام، آملہ، ناریل آئل، کیسٹر آئل۔",
-            usage: "سر کی جلد پر مالش کریں اور 1-2 گھنٹے بعد دھو لیں۔"
-        }
-    },
-    {
-        id: 3,
-        name: "Rogan-e-Damagi",
-        price: 720,
-        image: "/Product Images/Rogan-e-Damagi.jpeg",
-        descEnglish: {
-            subheading: "Ideal Herbal Tonic Oil for Hair & Brain",
-            about: "Experience the traditional goodness of Al Hashmi Natural Rogan-e-Damagi...",
-            benefits: ["Supports mental freshness and relaxation", "Helps with headaches"],
-            ingredients: "Almond oil, Pumpkin seed oil, Poppy seed oil, Walnut oil.",
-            usage: "Apply 2 drops on the head at bedtime."
-        },
-        descUrdu: {
-            subheading: "بالوں اور دماغ کے لیے انمول ہربل ٹانک",
-            about: "خالص مغزیات اور بیجوں کے تیلوں کے حسین امتزاج سے تیار کردہ ہربل آئل۔",
-            benefits: ["دماغی تازگی اور سکون کے لیے مفید", "سر میں ٹھنڈک پیدا کرتا hai"],
-            ingredients: "بادام روغن، کدو روغن، خشخاش روغن، اخروٹ روغن۔",
-            usage: "رات کو سوتے وقت ہلکی مالش کریں۔"
-        }
+// ---------------------------------------------------------
+// MONGOOSE DATABASE SCHEMA (PERMANENT STORAGE)
+// ---------------------------------------------------------
+const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://alhashmi:alhashmi123@cluster0.mongodb.net/alhashmi_store?retryWrites=true&w=majority";
+
+mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log('MongoDB Permanent Database Connected Successfully!'))
+    .catch(err => console.log('MongoDB Connection Warning (Using Memory Fallback):', err.message));
+
+const orderSchema = new mongoose.Schema({
+    customerName: String,
+    phone: String,
+    city: String,
+    address: String,
+    items: Array,
+    subtotal: Number,
+    deliveryCharges: Number,
+    totalAmount: Number,
+    status: { type: String, default: 'pending' },
+    orderDate: { type: String, default: () => new Date().toLocaleString() }
+});
+
+const Order = mongoose.model('Order', orderSchema);
+
+// Memory Fallback Array (in case DB is connecting)
+let memoryOrders = [];
+
+// Setup Email Transporter
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'a23158700@gmail.com',
+        pass: process.env.EMAIL_APP_PASSWORD || ''
     }
+});
+
+// Products Data
+const products = [
+    { id: 1, name: "Sharbat Aksir-e-Jism", price: 680, image: "/Product Images/Aksir-e-Jism.jpeg" },
+    { id: 2, name: "Almond & Amla Hair Oil", price: 580, image: "/Product Images/Almond & Amla Hair Oil.jpeg" },
+    { id: 3, name: "Rogan-e-Damagi", price: 720, image: "/Product Images/Rogan-e-Damagi.jpeg" }
 ];
 
-// API Endpoints
 app.get('/api/products', (req, res) => {
     res.json(products);
 });
 
-// Save New Order
-app.post('/api/orders', (req, res) => {
-    const newOrder = req.body;
-    newOrder.id = Date.now(); // Unique ID
-    newOrder.status = 'pending'; // Default Status
-    newOrder.deliveryCharges = DELIVERY_CHARGES;
-    const itemsTotal = (newOrder.items || []).reduce((acc, item) => acc + (item.price * item.qty), 0);
-    newOrder.subtotal = itemsTotal;
-    newOrder.totalAmount = itemsTotal + DELIVERY_CHARGES;
+// SAVE ORDER TO PERMANENT DATABASE
+app.post('/api/orders', async (req, res) => {
+    try {
+        const orderData = req.body;
+        orderData.deliveryCharges = DELIVERY_CHARGES;
+        const itemsTotal = (orderData.items || []).reduce((acc, item) => acc + (item.price * item.qty), 0);
+        orderData.subtotal = itemsTotal;
+        orderData.totalAmount = itemsTotal + DELIVERY_CHARGES;
+        orderData.status = 'pending';
+        orderData.orderDate = new Date().toLocaleString();
 
-    savedOrders.unshift(newOrder);
-    res.status(200).json({ message: 'Order received successfully!', deliveryCharges: DELIVERY_CHARGES });
+        let savedDoc = null;
+        if (mongoose.connection.readyState === 1) {
+            const newOrder = new Order(orderData);
+            savedDoc = await newOrder.save();
+        } else {
+            orderData._id = Date.now().toString();
+            memoryOrders.unshift(orderData);
+            savedDoc = orderData;
+        }
+
+        // Email Backup
+        if (process.env.EMAIL_APP_PASSWORD) {
+            const itemsListText = (orderData.items || []).map(i => `• ${i.name} (Qty: ${i.qty}) - Rs. ${i.price * i.qty}`).join('\n');
+            const mailOptions = {
+                from: 'Al Hashmi Natural Store <a23158700@gmail.com>',
+                to: 'a23158700@gmail.com',
+                subject: `🚨 NEW ORDER RECEIVED - ${orderData.customerName}`,
+                text: `Customer Name: ${orderData.customerName}\nPhone: ${orderData.phone}\nCity: ${orderData.city}\nAddress: ${orderData.address}\n\nITEMS:\n${itemsListText}\n\nSubtotal: Rs. ${orderData.subtotal}\nDelivery Fee: Rs. ${DELIVERY_CHARGES}\nTOTAL BILL: Rs. ${orderData.totalAmount}`
+            };
+            transporter.sendMail(mailOptions).catch(e => console.log('Email fail:', e));
+        }
+
+        res.status(200).json({ message: 'Order received successfully!', deliveryCharges: DELIVERY_CHARGES });
+    } catch (err) {
+        console.error('Order Save Error:', err);
+        res.status(500).json({ error: 'Order save karne mein masla aaya' });
+    }
 });
 
-// API to Toggle Order Status (Pending <-> Delivered)
-app.post('/api/admin/toggle-status', (req, res) => {
+// TOGGLE ORDER STATUS (PENDING <-> DELIVERED) IN DATABASE
+app.post('/api/admin/toggle-status', async (req, res) => {
     const { pass, orderId } = req.body;
     if (pass !== ADMIN_PASSWORD) {
         return res.status(403).json({ error: 'Unauthorized' });
     }
-    const order = savedOrders.find(o => o.id === parseInt(orderId));
-    if (order) {
-        order.status = order.status === 'delivered' ? 'pending' : 'delivered';
-        res.json({ success: true, newStatus: order.status });
-    } else {
+
+    try {
+        if (mongoose.connection.readyState === 1) {
+            const order = await Order.findById(orderId);
+            if (order) {
+                order.status = order.status === 'delivered' ? 'pending' : 'delivered';
+                await order.save();
+                return res.json({ success: true, newStatus: order.status });
+            }
+        } else {
+            const order = memoryOrders.find(o => o._id === orderId || o.id == orderId);
+            if (order) {
+                order.status = order.status === 'delivered' ? 'pending' : 'delivered';
+                return res.json({ success: true, newStatus: order.status });
+            }
+        }
         res.status(404).json({ error: 'Order not found' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 
-// SECURED ADMIN PANEL WITH TABS & STATUS MANAGEMENT
-app.get('/admin', (req, res) => {
+// SECURED ADMIN PANEL WITH DATABASE FETCHING
+app.get('/admin', async (req, res) => {
     const userPassword = req.query.pass;
 
-    // Password Check
     if (!userPassword || userPassword !== ADMIN_PASSWORD) {
         return res.send(`
             <!DOCTYPE html>
@@ -153,8 +163,15 @@ app.get('/admin', (req, res) => {
         `);
     }
 
-    const pendingOrders = savedOrders.filter(o => o.status !== 'delivered');
-    const deliveredOrders = savedOrders.filter(o => o.status === 'delivered');
+    let allOrders = [];
+    if (mongoose.connection.readyState === 1) {
+        allOrders = await Order.find().sort({ _id: -1 });
+    } else {
+        allOrders = memoryOrders;
+    }
+
+    const pendingOrders = allOrders.filter(o => o.status !== 'delivered');
+    const deliveredOrders = allOrders.filter(o => o.status === 'delivered');
 
     res.send(`
         <!DOCTYPE html>
@@ -166,31 +183,25 @@ app.get('/admin', (req, res) => {
                 .header { background: #2c5e3b; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
                 .header h1 { margin: 0; font-size: 1.5rem; }
                 .logout-btn { background: #d9534f; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px; font-weight: bold; }
-                
                 .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
                 .tab-btn { padding: 12px 24px; border: none; background: #e0e0e0; color: #333; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 15px; }
                 .tab-btn.active { background: #2c5e3b; color: white; }
                 .badge { background: #e67e22; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 5px; }
-                
                 .tab-content { display: none; }
                 .tab-content.active { display: block; }
-                
-                .order-card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 15px; border-left: 6px solid #2c5e3b; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: relative; }
+                .order-card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 15px; border-left: 6px solid #2c5e3b; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
                 .order-card.delivered-card { border-left-color: #25d366; background: #fafafa; }
-                .order-card h3 { color: #2c5e3b; margin-top: 0; }
-                ul { margin: 8px 0; padding-left: 20px; }
                 .price-breakdown { background: #f9f9f9; padding: 10px; border-radius: 5px; margin-top: 10px; }
-                
-                .status-btn { background: #25d366; color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
+                .status-btn { background: #25d366; color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 15px; }
                 .status-btn.undo-btn { background: #6c757d; }
-                .status-badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; }
-                .badge-pending { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
-                .badge-delivered { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+                .status-badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-bottom: 10px; }
+                .badge-pending { background: #fff3cd; color: #856404; }
+                .badge-delivered { background: #d4edda; color: #155724; }
             </style>
         </head>
         <body>
             <div class="header">
-                <h1>📦 Al Hashmi Natural - Order Dashboard</h1>
+                <h1>📦 Al Hashmi Natural - Permanent Order Dashboard</h1>
                 <a href="/admin" class="logout-btn">Logout</a>
             </div>
 
@@ -203,7 +214,6 @@ app.get('/admin', (req, res) => {
                 </button>
             </div>
 
-            <!-- PENDING ORDERS TAB -->
             <div id="pending-tab" class="tab-content active">
                 ${pendingOrders.length === 0 ? '<p style="padding: 20px; background: white; border-radius: 8px;">Koi pending order nahi hai.</p>' : ''}
                 ${pendingOrders.map(o => `
@@ -219,16 +229,15 @@ app.get('/admin', (req, res) => {
                             ${(o.items || []).map(item => `<li>${item.name} x${item.qty} = Rs. ${item.price * item.qty}</li>`).join('')}
                         </ul>
                         <div class="price-breakdown">
-                            <p style="margin: 3px 0;"><strong>Subtotal:</strong> Rs. ${o.subtotal || (o.items || []).reduce((acc, item) => acc + (item.price * item.qty), 0)}</p>
-                            <p style="margin: 3px 0;"><strong>Delivery Charges (All Pakistan):</strong> Rs. ${o.deliveryCharges || DELIVERY_CHARGES}</p>
+                            <p style="margin: 3px 0;"><strong>Subtotal:</strong> Rs. ${o.subtotal}</p>
+                            <p style="margin: 3px 0;"><strong>Delivery Charges:</strong> Rs. ${o.deliveryCharges}</p>
                             <h4 style="color:#2c5e3b; margin: 8px 0 0 0;">Total Payable: Rs. ${o.totalAmount}</h4>
                         </div>
-                        <button class="status-btn" onclick="toggleStatus(${o.id})">✅ Mark as Delivered</button>
+                        <button class="status-btn" onclick="toggleStatus('${o._id || o.id}')">✅ Mark as Delivered</button>
                     </div>
                 `).join('')}
             </div>
 
-            <!-- DELIVERED ORDERS TAB -->
             <div id="delivered-tab" class="tab-content">
                 ${deliveredOrders.length === 0 ? '<p style="padding: 20px; background: white; border-radius: 8px;">Abhi tak koi order deliver nahi hua.</p>' : ''}
                 ${deliveredOrders.map(o => `
@@ -244,11 +253,11 @@ app.get('/admin', (req, res) => {
                             ${(o.items || []).map(item => `<li>${item.name} x${item.qty} = Rs. ${item.price * item.qty}</li>`).join('')}
                         </ul>
                         <div class="price-breakdown">
-                            <p style="margin: 3px 0;"><strong>Subtotal:</strong> Rs. ${o.subtotal || (o.items || []).reduce((acc, item) => acc + (item.price * item.qty), 0)}</p>
-                            <p style="margin: 3px 0;"><strong>Delivery Charges (All Pakistan):</strong> Rs. ${o.deliveryCharges || DELIVERY_CHARGES}</p>
+                            <p style="margin: 3px 0;"><strong>Subtotal:</strong> Rs. ${o.subtotal}</p>
+                            <p style="margin: 3px 0;"><strong>Delivery Charges:</strong> Rs. ${o.deliveryCharges}</p>
                             <h4 style="color:#2c5e3b; margin: 8px 0 0 0;">Total Paid: Rs. ${o.totalAmount}</h4>
                         </div>
-                        <button class="status-btn undo-btn" onclick="toggleStatus(${o.id})">↩️ Move Back to Pending</button>
+                        <button class="status-btn undo-btn" onclick="toggleStatus('${o._id || o.id}')">↩️ Move Back to Pending</button>
                     </div>
                 `).join('')}
             </div>
@@ -257,7 +266,6 @@ app.get('/admin', (req, res) => {
                 function switchTab(tabName) {
                     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
                     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-                    
                     if (tabName === 'pending') {
                         document.querySelectorAll('.tab-btn')[0].classList.add('active');
                         document.getElementById('pending-tab').classList.add('active');
@@ -287,7 +295,6 @@ app.get('/admin', (req, res) => {
     `);
 });
 
-// Serve main page
 app.get('/', (req, res) => {
     res.sendFile(path.join(process.cwd(), 'index.html'));
 });
@@ -296,6 +303,6 @@ module.exports = app;
 
 if (require.main === module) {
     app.listen(PORT, () => {
-        console.log(`Server running smoothly on http://localhost:${PORT}`);
+        console.log(`Server running on http://localhost:${PORT}`);
     });
 }
