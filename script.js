@@ -109,7 +109,6 @@ function updateCartUI() {
     });
     html += '</ul>';
 
-    // Breakdown with Rs. 499 Delivery Charges
     const grandTotal = subtotal + DELIVERY_CHARGES;
     html += `
         <div style="background-color: #f8f9fa; padding: 12px; border-radius: 6px; margin-top: 15px; border: 1px solid #e2e8f0;">
@@ -162,7 +161,7 @@ async function handleCheckout(event) {
         orderDate: new Date().toLocaleString()
     };
 
-    // 1. Send Order Data to Backend API
+    // 1. Send Order to Backend
     try {
         await fetch('/api/orders', {
             method: 'POST',
@@ -170,38 +169,51 @@ async function handleCheckout(event) {
             body: JSON.stringify(orderData)
         });
     } catch (error) {
-        console.error('Error saving order to database:', error);
+        console.error('Error saving order:', error);
     }
 
-    // 2. Send Formatted WhatsApp Message (with Delivery Charges)
-    const itemsText = cart.map(item => `• ${item.name} (x${item.qty}) - Rs. ${item.price * item.qty}`).join('\n');
+    // 2. Update Order Summary Receipt Popup HTML
+    const summaryContainer = document.querySelector('.order-card-summary') || document.querySelector('.order-summary') || document.getElementById('order-receipt-details');
     
-    const whatsappMessage = `*New Order Received - Al Hashmi Natural*
+    if (summaryContainer) {
+        const itemsList = cart.map(item => `<li>${item.name} - Qty: ${item.qty} (Rs. ${item.price * item.qty})</li>`).join('');
+        
+        summaryContainer.innerHTML = `
+            <p><strong>Customer Name:</strong> ${name}</p>
+            <p><strong>Phone Number:</strong> ${phone}</p>
+            <p><strong>City:</strong> ${city}</p>
+            <p><strong>Address:</strong> ${address}</p>
+            <hr>
+            <p><strong>Ordered Products:</strong></p>
+            <ul style="padding-left: 20px;">${itemsList}</ul>
+            <div style="background-color: #f4f8f5; padding: 10px; border-radius: 6px; margin-top: 10px;">
+                <p style="margin: 3px 0;"><strong>Subtotal:</strong> Rs. ${subtotal}</p>
+                <p style="margin: 3px 0; color: #2c5e3b;"><strong>Delivery Charges (All Pakistan):</strong> Rs. ${DELIVERY_CHARGES}</p>
+                <h4 style="color: #2c5e3b; margin: 5px 0 0 0;">Total Bill: Rs. ${grandTotal}</h4>
+            </div>
+        `;
+    }
 
-*Customer Name:* ${name}
-*Phone:* ${phone}
-*City:* ${city}
-*Address:* ${address}
+    // 3. Prepare WhatsApp URL & Button Action
+    const itemsText = cart.map(item => `• ${item.name} (x${item.qty}) - Rs. ${item.price * item.qty}`).join('\n');
+    const whatsappMessage = `*New Order Received - Al Hashmi Natural*\n\n*Customer Name:* ${name}\n*Phone:* ${phone}\n*City:* ${city}\n*Address:* ${address}\n\n*Items Ordered:*\n${itemsText}\n\n*Subtotal:* Rs. ${subtotal}\n*Delivery Charges (All Pakistan):* Rs. ${DELIVERY_CHARGES}\n*Total Amount:* Rs. ${grandTotal}`;
+    
+    const whatsappBtn = document.getElementById('whatsapp-share-btn') || document.querySelector('button[onclick*="whatsapp"]') || document.querySelector('.whatsapp-btn');
+    if (whatsappBtn) {
+        whatsappBtn.onclick = function() {
+            window.open(`https://wa.me/923128538441?text=${encodeURIComponent(whatsappMessage)}`, '_blank');
+        };
+    }
 
-*Items Ordered:*
-${itemsText}
-
-*Subtotal:* Rs. ${subtotal}
-*Delivery Charges (All Pakistan):* Rs. ${DELIVERY_CHARGES}
-*Total Amount:* Rs. ${grandTotal}`;
-
-    const whatsappNumber = "923128538441"; // Aapka Business WhatsApp Number
-    const encodedURL = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
-
-    // Reset Cart & UI
-    alert(`🎉 Shukriya! Aapka order receive ho chuka hai.\nWhatsApp message khul raha hai...`);
+    // Close checkout form & reset cart
+    closeCartModal();
     cart = [];
     updateCartUI();
-    closeCartModal();
-    document.getElementById('checkout-form').reset();
+    if (document.getElementById('checkout-form')) document.getElementById('checkout-form').reset();
 
-    // Redirect to WhatsApp
-    window.open(encodedURL, '_blank');
+    // Show Receipt Modal
+    const summaryModal = document.getElementById('receipt-modal') || document.getElementById('summary-modal') || document.getElementById('order-summary-modal');
+    if (summaryModal) summaryModal.style.display = 'flex';
 }
 
 document.addEventListener('DOMContentLoaded', fetchProducts);
