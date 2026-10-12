@@ -1,5 +1,5 @@
 let cart = [];
-const DELIVERY_CHARGES = 150; // Updated Nationwide Flat Delivery Charges
+const DELIVERY_CHARGES = 150; // Nationwide Flat Delivery Charges
 
 async function fetchProducts() {
     try {
@@ -157,7 +157,7 @@ async function handleCheckout(event) {
         orderDate: new Date().toLocaleString()
     };
 
-    // 1. Backend Save
+    // 1. Backend API Call
     try {
         await fetch('/api/orders', {
             method: 'POST',
@@ -168,7 +168,7 @@ async function handleCheckout(event) {
         console.error('Error saving order:', error);
     }
 
-    // 2. Override Order Summary Receipt Modal DOM
+    // 2. Receipt Popup DOM Replacement
     const modalCards = document.querySelectorAll('div');
     modalCards.forEach(div => {
         if (div.innerText && div.innerText.includes('Customer Name:') && div.innerText.includes('Ordered Products:')) {
@@ -191,12 +191,11 @@ async function handleCheckout(event) {
         }
     });
 
-    // 3. Format WhatsApp Message
+    // 3. Format WhatsApp String
     const itemsText = cart.map(item => `• ${item.name} (x${item.qty}) - Rs. ${item.price * item.qty}`).join('\n');
     const whatsappMessage = `*New Order Received - Al Hashmi Natural*\n\n*Customer Name:* ${name}\n*Phone:* ${phone}\n*City:* ${city}\n*Address:* ${address}\n\n*Items Ordered:*\n${itemsText}\n\n*Subtotal:* Rs. ${subtotal}\n*Delivery Charges (All Pakistan):* Rs. ${DELIVERY_CHARGES}\n*Total Amount:* Rs. ${grandTotal}`;
     const encodedURL = `https://wa.me/923128538441?text=${encodeURIComponent(whatsappMessage)}`;
 
-    // Bind Action to WhatsApp & Done buttons
     const allButtons = document.querySelectorAll('button, a');
     allButtons.forEach(btn => {
         if (btn.innerText && btn.innerText.toLowerCase().includes('whatsapp')) {
