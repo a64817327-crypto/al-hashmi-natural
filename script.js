@@ -21,46 +21,50 @@ function renderProducts(products) {
     products.forEach(product => {
         const card = document.createElement('div');
         card.className = 'product-card';
-        card.style.border = "1px solid #ddd";
-        card.style.borderRadius = "10px";
-        card.style.padding = "15px";
-        card.style.marginBottom = "20px";
+        card.style.border = "1px solid #e0e0e0";
+        card.style.borderRadius = "12px";
+        card.style.padding = "20px";
+        card.style.marginBottom = "25px";
         card.style.backgroundColor = "#fff";
-        card.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
+        card.style.boxShadow = "0 4px 12px rgba(0,0,0,0.06)";
 
-        const engBenefits = product.descEnglish.benefits.map(b => `<li>${b}</li>`).join('');
-        const urduBenefits = product.descUrdu.benefits.map(b => `<li>${b}</li>`).join('');
+        const engBenefits = product.descEnglish.benefits.map(b => `<li style="margin-bottom: 6px;">${b}</li>`).join('');
+        const urduBenefits = product.descUrdu.benefits.map(b => `<li style="margin-bottom: 6px;">${b}</li>`).join('');
 
         card.innerHTML = `
             <div style="text-align: center;">
-                <img src="${product.image}" alt="${product.name}" style="max-height: 260px; width: auto; object-fit: contain; border-radius: 8px;">
+                <img src="${product.image}" alt="${product.name}" style="max-height: 270px; width: auto; object-fit: contain; border-radius: 8px;">
             </div>
             
-            <h2 style="color: #2c5e3b; margin-top: 15px; text-align: center;">${product.name}</h2>
-            <p style="text-align: center; font-weight: bold; color: #e67e22; font-size: 1.2rem;">Rs. ${product.price}</p>
+            <h2 style="color: #2c5e3b; margin-top: 18px; text-align: center; font-size: 1.6rem; font-weight: 700;">${product.name}</h2>
+            <p style="text-align: center; font-weight: 800; color: #e67e22; font-size: 1.3rem; margin: 8px 0;">Rs. ${product.price}</p>
             
-            <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 18px 0;">
 
-            <div style="font-size: 14px; color: #333; line-height: 1.5; margin-bottom: 15px;">
-                <h4 style="color: #2c5e3b; margin-bottom: 5px;">${product.descEnglish.subheading}</h4>
-                <p>${product.descEnglish.about}</p>
-                <strong>Key Benefits:</strong>
-                <ul style="padding-left: 20px; margin: 5px 0;">${engBenefits}</ul>
-                <p><strong>Ingredients:</strong> ${product.descEnglish.ingredients}</p>
-                <p><strong>How to Use:</strong> ${product.descEnglish.usage}</p>
+            <!-- English Description (Enhanced Font Size & Headings) -->
+            <div style="font-size: 15px; color: #2d3748; line-height: 1.7; margin-bottom: 20px; font-family: Arial, sans-serif;">
+                <h3 style="color: #2c5e3b; margin-bottom: 8px; font-size: 1.15rem; font-weight: 700;">${product.descEnglish.subheading}</h3>
+                <p style="margin-bottom: 12px; color: #4a5568; font-size: 15px;">${product.descEnglish.about}</p>
+                
+                <h4 style="color: #2c5e3b; margin: 12px 0 6px 0; font-size: 1rem; font-weight: 700;">Key Benefits:</h4>
+                <ul style="padding-left: 22px; margin: 6px 0 12px 0; color: #333; font-size: 15px;">${engBenefits}</ul>
+                
+                <p style="margin: 8px 0;"><strong style="color: #2c5e3b; font-size: 1rem;">Ingredients:</strong> <span style="color: #4a5568;">${product.descEnglish.ingredients}</span></p>
+                <p style="margin: 8px 0;"><strong style="color: #2c5e3b; font-size: 1rem;">How to Use:</strong> <span style="color: #4a5568;">${product.descEnglish.usage}</span></p>
             </div>
 
-            <div style="font-size: 15px; color: #222; line-height: 1.8; direction: rtl; text-align: right; background-color: #f9fdfa; padding: 12px; border-radius: 6px; border-right: 4px solid #2c5e3b;">
-                <h4 style="color: #2c5e3b; margin-bottom: 5px;">${product.descUrdu.subheading}</h4>
-                <p>${product.descUrdu.about}</p>
-                <strong>اہم فوائد:</strong>
-                <ul style="padding-right: 20px; margin: 5px 0;">${urduBenefits}</ul>
-                <p><strong>اجزاء:</strong> ${product.descUrdu.ingredients}</p>
-                <p><strong>طریقۂ استعمال:</strong> ${product.descUrdu.usage}</p>
+            <!-- Urdu Description -->
+            <div style="font-size: 15px; color: #222; line-height: 1.8; direction: rtl; text-align: right; background-color: #f9fdfa; padding: 15px; border-radius: 8px; border-right: 5px solid #2c5e3b; margin-bottom: 15px;">
+                <h3 style="color: #2c5e3b; margin-bottom: 8px; font-size: 1.2rem; font-weight: 700;">${product.descUrdu.subheading}</h3>
+                <p style="margin-bottom: 10px;">${product.descUrdu.about}</p>
+                <h4 style="color: #2c5e3b; margin: 10px 0 6px 0; font-size: 1.05rem; font-weight: 700;">اہم فوائد:</h4>
+                <ul style="padding-right: 22px; margin: 6px 0 10px 0;">${urduBenefits}</ul>
+                <p style="margin: 6px 0;"><strong>اجزاء:</strong> ${product.descUrdu.ingredients}</p>
+                <p style="margin: 6px 0;"><strong>طریقۂ استعمال:</strong> ${product.descUrdu.usage}</p>
             </div>
 
-            <div style="text-align: center; margin-top: 20px;">
-                <button onclick="addToCart(${product.id}, '${product.name}', ${product.price})" style="background-color: #2c5e3b; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold;">
+            <div style="text-align: center; margin-top: 22px;">
+                <button onclick="addToCart(${product.id}, '${product.name}', ${product.price})" style="background-color: #2c5e3b; color: white; border: none; padding: 12px 28px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; box-shadow: 0 2px 6px rgba(44,94,59,0.3);">
                     🛒 Add to Cart (Rs. ${product.price})
                 </button>
             </div>
@@ -162,7 +166,6 @@ async function handleCheckout(event) {
         orderDate: new Date().toLocaleString()
     };
 
-    // 1. Backend Order Save
     try {
         await fetch('/api/orders', {
             method: 'POST',
@@ -173,11 +176,9 @@ async function handleCheckout(event) {
         console.error('Error saving order:', error);
     }
 
-    // 2. Direct DOM Targeting for Receipt Modal Popup
     setTimeout(() => {
         const itemsListHTML = cart.map(item => `<li style="margin-bottom: 4px;">${item.name} - Qty: ${item.qty} (Rs. ${item.price * item.qty})</li>`).join('');
         
-        // Find receipt card container
         const allDivs = Array.from(document.querySelectorAll('div'));
         const receiptCard = allDivs.find(d => d.innerText && d.innerText.includes('Customer Name:') && d.innerText.includes('Ordered Products:'));
 
@@ -199,7 +200,6 @@ async function handleCheckout(event) {
             `;
         }
 
-        // 3. WhatsApp Redirect Link Setup
         const itemsText = cart.map(item => `• ${item.name} (x${item.qty}) - Rs. ${item.price * item.qty}`).join('\n');
         const whatsappMessage = `*New Order Received - Al Hashmi Natural*\n\n*Customer Name:* ${name}\n*Phone:* ${phone}\n*City:* ${city}\n*Address:* ${address}\n\n*Items Ordered:*\n${itemsText}\n\n*Subtotal:* Rs. ${subtotal}\n*Delivery Charges (All Pakistan):* Rs. ${DELIVERY_CHARGES}\n*Total Amount:* Rs. ${grandTotal}`;
         const encodedURL = `https://wa.me/923128538441?text=${encodeURIComponent(whatsappMessage)}`;
@@ -219,7 +219,6 @@ async function handleCheckout(event) {
             }
         });
 
-        // Close checkout modal & clear cart
         closeCartModal();
         cart = [];
         updateCartUI();
