@@ -5,20 +5,16 @@ const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
 
-// 1. Serve static files from root directory (process.cwd() for Vercel)
+// Serve static files from root directory
 app.use(express.static(process.cwd()));
 
-// 2. Serve product images folder specifically for Vercel Serverless Function
+// Serve product images specifically for Vercel
 app.use('/Product Images', express.static(path.join(process.cwd(), 'Product Images')));
 app.use('/Product%20Images', express.static(path.join(process.cwd(), 'Product Images')));
 
-// Standard Flat Delivery Charges for All Over Pakistan
 const DELIVERY_CHARGES = 499;
-
-// Store received orders in memory
 let savedOrders = [];
 
-// Real Products Full Detailed Data
 const products = [
     {
         id: 1,
@@ -125,34 +121,25 @@ const products = [
     }
 ];
 
-// API Endpoints
 app.get('/api/products', (req, res) => {
     res.json(products);
 });
 
-// Save New Order
 app.post('/api/orders', (req, res) => {
     const newOrder = req.body;
-    
-    // Automatically attach flat Delivery Charges
     newOrder.deliveryCharges = DELIVERY_CHARGES;
-    
-    // Calculate total
     const itemsTotal = (newOrder.items || []).reduce((acc, item) => acc + (item.price * item.qty), 0);
     newOrder.subtotal = itemsTotal;
     newOrder.totalAmount = itemsTotal + DELIVERY_CHARGES;
 
     savedOrders.unshift(newOrder);
-    console.log('New Order Received with Delivery Charges:', newOrder);
     res.status(200).json({ message: 'Order received successfully!', deliveryCharges: DELIVERY_CHARGES });
 });
 
-// View All Orders (Admin API)
 app.get('/api/admin/orders', (req, res) => {
     res.json(savedOrders);
 });
 
-// Admin Page to view all orders
 app.get('/admin', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -194,12 +181,10 @@ app.get('/admin', (req, res) => {
     `);
 });
 
-// Serve main page
 app.get('/', (req, res) => {
     res.sendFile(path.join(process.cwd(), 'index.html'));
 });
 
-// Export app for Vercel Serverless Function
 module.exports = app;
 
 if (require.main === module) {

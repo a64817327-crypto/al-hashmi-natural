@@ -161,7 +161,7 @@ async function handleCheckout(event) {
         orderDate: new Date().toLocaleString()
     };
 
-    // 1. Send Order to Backend
+    // 1. Send Order to Backend API
     try {
         await fetch('/api/orders', {
             method: 'POST',
@@ -172,29 +172,28 @@ async function handleCheckout(event) {
         console.error('Error saving order:', error);
     }
 
-    // 2. Update Order Summary Receipt Popup HTML
+    // 2. Dynamic Order Summary Receipt Update
     const summaryContainer = document.querySelector('.order-card-summary') || document.querySelector('.order-summary') || document.getElementById('order-receipt-details');
-    
     if (summaryContainer) {
         const itemsList = cart.map(item => `<li>${item.name} - Qty: ${item.qty} (Rs. ${item.price * item.qty})</li>`).join('');
-        
         summaryContainer.innerHTML = `
             <p><strong>Customer Name:</strong> ${name}</p>
             <p><strong>Phone Number:</strong> ${phone}</p>
             <p><strong>City:</strong> ${city}</p>
             <p><strong>Address:</strong> ${address}</p>
-            <hr>
+            <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ddd;">
             <p><strong>Ordered Products:</strong></p>
-            <ul style="padding-left: 20px;">${itemsList}</ul>
-            <div style="background-color: #f4f8f5; padding: 10px; border-radius: 6px; margin-top: 10px;">
-                <p style="margin: 3px 0;"><strong>Subtotal:</strong> Rs. ${subtotal}</p>
-                <p style="margin: 3px 0; color: #2c5e3b;"><strong>Delivery Charges (All Pakistan):</strong> Rs. ${DELIVERY_CHARGES}</p>
-                <h4 style="color: #2c5e3b; margin: 5px 0 0 0;">Total Bill: Rs. ${grandTotal}</h4>
+            <ul style="padding-left: 20px; margin-bottom: 10px;">${itemsList}</ul>
+            <div style="background-color: #f4f8f5; padding: 12px; border-radius: 6px; border: 1px solid #d1e7dd;">
+                <p style="margin: 3px 0; display: flex; justify-content: space-between;"><span>Subtotal:</span> <span>Rs. ${subtotal}</span></p>
+                <p style="margin: 3px 0; display: flex; justify-content: space-between; color: #2c5e3b;"><span>Delivery Charges (All Pakistan):</span> <span>Rs. ${DELIVERY_CHARGES}</span></p>
+                <hr style="margin: 6px 0; border: 0; border-top: 1px solid #a3cfbb;">
+                <h4 style="color: #2c5e3b; margin: 4px 0 0 0; display: flex; justify-content: space-between;"><span>Total Bill:</span> <span>Rs. ${grandTotal}</span></h4>
             </div>
         `;
     }
 
-    // 3. Prepare WhatsApp URL & Button Action
+    // 3. Prepare WhatsApp Redirection
     const itemsText = cart.map(item => `• ${item.name} (x${item.qty}) - Rs. ${item.price * item.qty}`).join('\n');
     const whatsappMessage = `*New Order Received - Al Hashmi Natural*\n\n*Customer Name:* ${name}\n*Phone:* ${phone}\n*City:* ${city}\n*Address:* ${address}\n\n*Items Ordered:*\n${itemsText}\n\n*Subtotal:* Rs. ${subtotal}\n*Delivery Charges (All Pakistan):* Rs. ${DELIVERY_CHARGES}\n*Total Amount:* Rs. ${grandTotal}`;
     
@@ -205,13 +204,11 @@ async function handleCheckout(event) {
         };
     }
 
-    // Close checkout form & reset cart
     closeCartModal();
     cart = [];
     updateCartUI();
     if (document.getElementById('checkout-form')) document.getElementById('checkout-form').reset();
 
-    // Show Receipt Modal
     const summaryModal = document.getElementById('receipt-modal') || document.getElementById('summary-modal') || document.getElementById('order-summary-modal');
     if (summaryModal) summaryModal.style.display = 'flex';
 }
