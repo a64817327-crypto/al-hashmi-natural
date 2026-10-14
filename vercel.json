@@ -8,6 +8,10 @@
   ],
   "routes": [
     {
+      "src": "/Product Images/(.*)",
+      "dest": "/Product Images/$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "backend/server.js"
     }
