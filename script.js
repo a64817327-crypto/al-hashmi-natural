@@ -1,6 +1,126 @@
 let cart = [];
 const DELIVERY_CHARGES = 150; // Nationwide Flat Delivery Fee (Rs. 150)
 
+// Local fallback data in case backend API is delayed
+const localProducts = [
+    {
+        id: 1,
+        name: "Sharbat Aksir-e-Jism",
+        price: 680,
+        image: "/Product Images/Aksir-e-Jism.jpeg",
+        descEnglish: {
+            subheading: "Classical Herbal General & Vitality Tonic",
+            about: "A time-tested Unani formulation made from natural herbs to restore daily energy, strengthen body systems, and promote overall physical fitness.",
+            benefits: [
+                "Boosts daily stamina and physical strength",
+                "Supports digestive health and blood circulation",
+                "Relieves daily fatigue and general body weakness"
+            ],
+            ingredients: "Natural Unani Herbs, Botanical Extracts & Preservatives",
+            usage: "Take 2 tablespoons daily before meals or as directed by a Hakim."
+        },
+        descUrdu: {
+            subheading: "کلاسیکل یونانی عمومی و مقویِ جسم شربت",
+            about: "قدرتی جڑی بوٹیوں سے تیار کردہ ایک آزمودہ یونانی فارمولیشن جو روزانہ کی توانائی کی بحالی، جسمانی نظام کی مضبوطی اور عمومی صحت کے لیے مفہد ہے۔",
+            benefits: [
+                "روزمرہ کی توانائی اور جسمانی طاقت میں اضافہ کرتا ہے",
+                "نظامِ ہضم اور دورانِ خون کو بہتر بناتا ہے",
+                "تھکاوٹ اور عمومی جسمانی کمزوری کو دور کرتا ہے"
+            ],
+            ingredients: "خالص یونانی جڑی بوٹیاں اور نباتاتی اجزاء",
+            usage: "دن میں دو چمچ کھانے سے پہلے یا حکیم کی ہدایت کے مطابق استعمال کریں۔"
+        }
+    },
+    {
+        id: 2,
+        name: "Almond & Amla Hair Oil",
+        price: 580,
+        image: "/Product Images/Almond & Amla Hair Oil.jpeg",
+        descEnglish: {
+            subheading: "Nourishing Herbal Hair Oil for Strong & Shiny Hair",
+            about: "A rich blend of sweet almond oil and pure Amla extracts designed to strengthen hair roots, prevent premature greying, and reduce hair fall.",
+            benefits: [
+                "Nourishes hair roots and prevents hair loss",
+                "Adds natural shine, softness, and volume",
+                "Soothes scalp and reduces dandruff"
+            ],
+            ingredients: "Sweet Almond Oil, Amla Extract, Natural Base Oils",
+            usage: "Gently massage into scalp 2-3 times a week before washing."
+        },
+        descUrdu: {
+            subheading: "مضبوط اور چمکدار بالوں کے لیے مقوی ہربل ہیئر آئل",
+            about: "میٹھے بادام کے تیل اور خالص آملہ کے عرق کا بہترین امتزاج جو بالوں کی جڑوں کو مضبوط کرتا ہے اور بال گرنے سے روکتا ہے۔",
+            benefits: [
+                "بالوں کی جڑوں کو غذائیت فراہم کرتا ہے اور گرنے سے روکتا ہے",
+                "بالوں میں قدرتی چمک اور نرمی پیدا کرتا ہے",
+                "سر کی جلد کو سکون دیتا ہے اور خشکی ختم کرتا ہے"
+            ],
+            ingredients: "روغنِ بادام، عرقِ آملہ، قدرتی بیس آئل",
+            usage: "ہفتے میں 2 سے 3 بار سر کی جلد پر ہلکا مساج کریں۔"
+        }
+    },
+    {
+        id: 3,
+        name: "Rogan-e-Damagi",
+        price: 720,
+        image: "/Product Images/Rogan-e-Damagi.jpeg",
+        descEnglish: {
+            subheading: "Traditional Brain & Mind Relaxing Herbal Oil",
+            about: "Formulated specifically to ease mental stress, relieve headaches, and promote restful sleep through external head massage.",
+            benefits: [
+                "Relieves mental fatigue, tension, and stress",
+                "Helps reduce chronic headaches and migraine discomfort",
+                "Promotes deep and relaxing sleep"
+            ],
+            ingredients: "Cooling Herbal Extracts, Natural Essential Oils",
+            usage: "Apply a few drops on head/scalp at night before sleeping."
+        },
+        descUrdu: {
+            subheading: "دماغی سکون اور اعصابی تقویت کے لیے روایتی ہربل تیل",
+            about: "دماغی تناؤ کو کم کرنے، سر درد سے نجات اور پرسکون نیند کے لیے خصوصی طور پر تیار کردہ تیل۔",
+            benefits: [
+                "دماغی تھکن، کشیدگی اور تناؤ کو دور کرتا ہے",
+                "سر درد اور آدھے سر کے درد میں راحت دیتا ہے",
+                "پرُسکون اور گہری نیند لانے میں معاون ہے"
+            ],
+            ingredients: "ٹھنڈے جڑی بوٹیوں کے عرق اور قدرتی روغن",
+            usage: "رات کو سونے سے پہلے چند قطرے سر پر لگا کر ہلکا مساج کریں۔"
+        }
+    },
+    {
+        id: 4,
+        name: "Majoon-e-Mughallaz Zafrani",
+        price: 780,
+        image: "/Product Images/Majoon-e-Mughallaz Zafrani.jpeg",
+        descEnglish: {
+            subheading: "Traditional Unani Tonic with Saffron — by Al Hashmi, Pakistan",
+            about: "Majoon-e-Mughallaz Zafrani is a classical Unani confection (majoon) prepared from natural herbs and pure saffron (zafran) according to traditional Unani methods. Trusted for generations, it is used as a restorative tonic to support male vitality, strength and general well-being.",
+            benefits: [
+                "Thickens and strengthens seminal fluid",
+                "Supports natural vitality, stamina and energy",
+                "Traditionally used for weakness associated with spermatorrhea (jaryan) and premature ejaculation",
+                "Helps relieve nervous weakness and supports muscles & joints",
+                "Acts as a general tonic for physical weakness"
+            ],
+            ingredients: "Pure Saffron (Zafran), Unani Medicinal Herbs, Honey Base",
+            usage: "1 small spoon twice daily before meals (morning & evening) with Sharbat Aksir-e-Jism."
+        },
+        descUrdu: {
+            subheading: "زعفران والی روایتی یونانی مقوّی دوا — الہاشمی، پاکستان",
+            about: "معجون مغلظ زعفرانی ایک مستند یونانی معجون ہے جو قدرتی جڑی بوٹیوں اور خالص زعفران سے طبِ یونانی کے روایتی اصولوں کے مطابق تیار کی جاتی ہے۔ نسل در نسل اعتماد کے ساتھ استعمال ہونے والی یہ معجون مردانہ قوت، جسمانی طاقت اور مجموعی صحت کی بحالی میں معاون سمجھی جاتی ہے۔",
+            benefits: [
+                "مادۂ منویہ کو گاڑھا اور مضبوط کرتی ہے",
+                "قدرتی قوت، طاقت اور توانائی میں اضافہ کرتی ہے",
+                "جریان، احتلام اور سرعتِ انزال سے پیدا ہونے والی کمزوری میں مفید ہے",
+                "اعصابی کمزوری، پٹھوں اور جوڑوں کی کمزوری کو دور کرنے میں معاون ہے",
+                "عمومی جسمانی کمزوری کے لیے بہترین مقوی ہے"
+            ],
+            ingredients: "خالص زعفران، قدرتی یونانی جڑی بوٹیاں، خالص شہد",
+            usage: "ایک چھوٹا چمچ دن میں دو بار (صبح و شام) کھانے سے پہلے شربتِ اکسیرِ جسم کے ساتھ استعمال کریں۔"
+        }
+    }
+];
+
 async function fetchProducts() {
     try {
         const response = await fetch('/api/products');
@@ -8,7 +128,8 @@ async function fetchProducts() {
         const products = await response.json();
         renderProducts(products);
     } catch (error) {
-        console.error("Error loading products:", error);
+        console.error("Error loading products via API, using local fallback:", error);
+        renderProducts(localProducts);
     }
 }
 
@@ -28,8 +149,8 @@ function renderProducts(products) {
         card.style.backgroundColor = "#fff";
         card.style.boxShadow = "0 4px 12px rgba(0,0,0,0.06)";
 
-        const engBenefits = product.descEnglish.benefits.map(b => `<li style="margin-bottom: 6px;">${b}</li>`).join('');
-        const urduBenefits = product.descUrdu.benefits.map(b => `<li style="margin-bottom: 6px;">${b}</li>`).join('');
+        const engBenefits = (product.descEnglish?.benefits || []).map(b => `<li style="margin-bottom: 6px;">${b}</li>`).join('');
+        const urduBenefits = (product.descUrdu?.benefits || []).map(b => `<li style="margin-bottom: 6px;">${b}</li>`).join('');
 
         card.innerHTML = `
             <div style="text-align: center;">
@@ -43,24 +164,24 @@ function renderProducts(products) {
 
             <!-- English Description -->
             <div style="font-size: 15px; color: #2d3748; line-height: 1.7; margin-bottom: 20px; font-family: Arial, sans-serif;">
-                <h3 style="color: #2c5e3b; margin-bottom: 8px; font-size: 1.15rem; font-weight: 700;">${product.descEnglish.subheading}</h3>
-                <p style="margin-bottom: 12px; color: #4a5568; font-size: 15px;">${product.descEnglish.about}</p>
+                <h3 style="color: #2c5e3b; margin-bottom: 8px; font-size: 1.15rem; font-weight: 700;">${product.descEnglish?.subheading || ''}</h3>
+                <p style="margin-bottom: 12px; color: #4a5568; font-size: 15px;">${product.descEnglish?.about || ''}</p>
                 
                 <h4 style="color: #2c5e3b; margin: 12px 0 6px 0; font-size: 1rem; font-weight: 700;">Key Benefits:</h4>
                 <ul style="padding-left: 22px; margin: 6px 0 12px 0; color: #333; font-size: 15px;">${engBenefits}</ul>
                 
-                <p style="margin: 8px 0;"><strong style="color: #2c5e3b; font-size: 1rem;">Ingredients:</strong> <span style="color: #4a5568;">${product.descEnglish.ingredients}</span></p>
-                <p style="margin: 8px 0;"><strong style="color: #2c5e3b; font-size: 1rem;">How to Use:</strong> <span style="color: #4a5568;">${product.descEnglish.usage}</span></p>
+                <p style="margin: 8px 0;"><strong style="color: #2c5e3b; font-size: 1rem;">Ingredients:</strong> <span style="color: #4a5568;">${product.descEnglish?.ingredients || ''}</span></p>
+                <p style="margin: 8px 0;"><strong style="color: #2c5e3b; font-size: 1rem;">How to Use:</strong> <span style="color: #4a5568;">${product.descEnglish?.usage || ''}</span></p>
             </div>
 
             <!-- Urdu Description -->
             <div style="font-size: 15px; color: #222; line-height: 1.8; direction: rtl; text-align: right; background-color: #f9fdfa; padding: 15px; border-radius: 8px; border-right: 5px solid #2c5e3b; margin-bottom: 15px;">
-                <h3 style="color: #2c5e3b; margin-bottom: 8px; font-size: 1.2rem; font-weight: 700;">${product.descUrdu.subheading}</h3>
-                <p style="margin-bottom: 10px;">${product.descUrdu.about}</p>
+                <h3 style="color: #2c5e3b; margin-bottom: 8px; font-size: 1.2rem; font-weight: 700;">${product.descUrdu?.subheading || ''}</h3>
+                <p style="margin-bottom: 10px;">${product.descUrdu?.about || ''}</p>
                 <h4 style="color: #2c5e3b; margin: 10px 0 6px 0; font-size: 1.05rem; font-weight: 700;">اہم فوائد:</h4>
                 <ul style="padding-right: 22px; margin: 6px 0 10px 0;">${urduBenefits}</ul>
-                <p style="margin: 6px 0;"><strong>اجزاء:</strong> ${product.descUrdu.ingredients}</p>
-                <p style="margin: 6px 0;"><strong>طریقۂ استعمال:</strong> ${product.descUrdu.usage}</p>
+                <p style="margin: 6px 0;"><strong>اجزاء:</strong> ${product.descUrdu?.ingredients || ''}</p>
+                <p style="margin: 6px 0;"><strong>طریقۂ استعمال:</strong> ${product.descUrdu?.usage || ''}</p>
             </div>
 
             <div style="text-align: center; margin-top: 22px;">
@@ -146,11 +267,14 @@ setInterval(() => {
         if (el.innerText && el.innerText.trim() === 'Total Bill: Rs. 720') {
             el.innerHTML = `<span style="color: #2c5e3b; font-weight: bold;">Items Subtotal: Rs. 720<br>Delivery Charges (All Pakistan): Rs. 150<br><span style="font-size: 1.1rem;">Total Bill: Rs. 870</span></span>`;
         }
+        if (el.innerText && el.innerText.trim() === 'Total Bill: Rs. 780') {
+            el.innerHTML = `<span style="color: #2c5e3b; font-weight: bold;">Items Subtotal: Rs. 780<br>Delivery Charges (All Pakistan): Rs. 150<br><span style="font-size: 1.1rem;">Total Bill: Rs. 930</span></span>`;
+        }
     });
 }, 200);
 
 async function handleCheckout(event) {
-    event.preventDefault();
+    if (event) event.preventDefault();
 
     if (cart.length === 0) {
         alert("Aap ka cart khali hai!");

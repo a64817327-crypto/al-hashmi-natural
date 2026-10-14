@@ -51,11 +51,124 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Products Data
+// Real Products Data with Full English & Urdu Descriptions
 const products = [
-    { id: 1, name: "Sharbat Aksir-e-Jism", price: 680, image: "/Product Images/Aksir-e-Jism.jpeg" },
-    { id: 2, name: "Almond & Amla Hair Oil", price: 580, image: "/Product Images/Almond & Amla Hair Oil.jpeg" },
-    { id: 3, name: "Rogan-e-Damagi", price: 720, image: "/Product Images/Rogan-e-Damagi.jpeg" }
+    {
+        id: 1,
+        name: "Sharbat Aksir-e-Jism",
+        price: 680,
+        image: "/Product Images/Aksir-e-Jism.jpeg",
+        descEnglish: {
+            subheading: "Classical Herbal General & Vitality Tonic",
+            about: "A time-tested Unani formulation made from natural herbs to restore daily energy, strengthen body systems, and promote overall physical fitness.",
+            benefits: [
+                "Boosts daily stamina and physical strength",
+                "Supports digestive health and blood circulation",
+                "Relieves daily fatigue and general body weakness"
+            ],
+            ingredients: "Natural Unani Herbs, Botanical Extracts & Preservatives",
+            usage: "Take 2 tablespoons daily before meals or as directed by a Hakim."
+        },
+        descUrdu: {
+            subheading: "کلاسیکل یونانی عمومی و مقویِ جسم شربت",
+            about: "قدرتی جڑی بوٹیوں سے تیار کردہ ایک آزمودہ یونانی فارمولیشن جو روزانہ کی توانائی کی بحالی، جسمانی نظام کی مضبوطی اور عمومی صحت کے لیے مفہد ہے۔",
+            benefits: [
+                "روزمرہ کی توانائی اور جسمانی طاقت میں اضافہ کرتا ہے",
+                "نظامِ ہضم اور دورانِ خون کو بہتر بناتا ہے",
+                "تھکاوٹ اور عمومی جسمانی کمزوری کو دور کرتا ہے"
+            ],
+            ingredients: "خالص یونانی جڑی بوٹیاں اور نباتاتی اجزاء",
+            usage: "دن میں دو چمچ کھانے سے پہلے یا حکیم کی ہدایت کے مطابق استعمال کریں۔"
+        }
+    },
+    {
+        id: 2,
+        name: "Almond & Amla Hair Oil",
+        price: 580,
+        image: "/Product Images/Almond & Amla Hair Oil.jpeg",
+        descEnglish: {
+            subheading: "Nourishing Herbal Hair Oil for Strong & Shiny Hair",
+            about: "A rich blend of sweet almond oil and pure Amla extracts designed to strengthen hair roots, prevent premature greying, and reduce hair fall.",
+            benefits: [
+                "Nourishes hair roots and prevents hair loss",
+                "Adds natural shine, softness, and volume",
+                "Soothes scalp and reduces dandruff"
+            ],
+            ingredients: "Sweet Almond Oil, Amla Extract, Natural Base Oils",
+            usage: "Gently massage into scalp 2-3 times a week before washing."
+        },
+        descUrdu: {
+            subheading: "مضبوط اور چمکدار بالوں کے لیے مقوی ہربل ہیئر آئل",
+            about: "میٹھے بادام کے تیل اور خالص آملہ کے عرق کا بہترین امتزاج جو بالوں کی جڑوں کو مضبوط کرتا ہے اور بال گرنے سے روکتا ہے۔",
+            benefits: [
+                "بالوں کی جڑوں کو غذائیت فراہم کرتا ہے اور گرنے سے روکتا ہے",
+                "بالوں میں قدرتی چمک اور نرمی پیدا کرتا ہے",
+                "سر کی جلد کو سکون دیتا ہے اور خشکی ختم کرتا ہے"
+            ],
+            ingredients: "روغنِ بادام، عرقِ آملہ، قدرتی بیس آئل",
+            usage: "ہفتے میں 2 سے 3 بار سر کی جلد پر ہلکا مساج کریں۔"
+        }
+    },
+    {
+        id: 3,
+        name: "Rogan-e-Damagi",
+        price: 720,
+        image: "/Product Images/Rogan-e-Damagi.jpeg",
+        descEnglish: {
+            subheading: "Traditional Brain & Mind Relaxing Herbal Oil",
+            about: "Formulated specifically to ease mental stress, relieve headaches, and promote restful sleep through external head massage.",
+            benefits: [
+                "Relieves mental fatigue, tension, and stress",
+                "Helps reduce chronic headaches and migraine discomfort",
+                "Promotes deep and relaxing sleep"
+            ],
+            ingredients: "Cooling Herbal Extracts, Natural Essential Oils",
+            usage: "Apply a few drops on head/scalp at night before sleeping."
+        },
+        descUrdu: {
+            subheading: "دماغی سکون اور اعصابی تقویت کے لیے روایتی ہربل تیل",
+            about: "دماغی تناؤ کو کم کرنے، سر درد سے نجات اور پرسکون نیند کے لیے خصوصی طور پر تیار کردہ تیل۔",
+            benefits: [
+                "دماغی تھکن، کشیدگی اور تناؤ کو دور کرتا ہے",
+                "سر درد اور آدھے سر کے درد میں راحت دیتا ہے",
+                "پرُسکون اور گہری نیند لانے میں معاون ہے"
+            ],
+            ingredients: "ٹھنڈے جڑی بوٹیوں کے عرق اور قدرتی روغن",
+            usage: "رات کو سونے سے پہلے چند قطرے سر پر لگا کر ہلکا مساج کریں۔"
+        }
+    },
+    {
+        id: 4,
+        name: "Majoon-e-Mughallaz Zafrani",
+        price: 780,
+        image: "/Product Images/Majoon-e-Mughallaz Zafrani.jpeg",
+        descEnglish: {
+            subheading: "Traditional Unani Tonic with Saffron — by Al Hashmi, Pakistan",
+            about: "Majoon-e-Mughallaz Zafrani is a classical Unani confection (majoon) prepared from natural herbs and pure saffron (zafran) according to traditional Unani methods. Trusted for generations, it is used as a restorative tonic to support male vitality, strength and general well-being.",
+            benefits: [
+                "Thickens and strengthens seminal fluid",
+                "Supports natural vitality, stamina and energy",
+                "Traditionally used for weakness associated with spermatorrhea (jaryan) and premature ejaculation",
+                "Helps relieve nervous weakness and supports muscles & joints",
+                "Acts as a general tonic for physical weakness"
+            ],
+            ingredients: "Pure Saffron (Zafran), Unani Medicinal Herbs, Honey Base",
+            usage: "1 small spoon twice daily before meals (morning & evening) with Sharbat Aksir-e-Jism."
+        },
+        descUrdu: {
+            subheading: "زعفران والی روایتی یونانی مقوّی دوا — الہاشمی، پاکستان",
+            about: "معجون مغلظ زعفرانی ایک مستند یونانی معجون ہے جو قدرتی جڑی بوٹیوں اور خالص زعفران سے طبِ یونانی کے روایتی اصولوں کے مطابق تیار کی جاتی ہے۔ نسل در نسل اعتماد کے ساتھ استعمال ہونے والی یہ معجون مردانہ قوت، جسمانی طاقت اور مجموعی صحت کی بحالی میں معاون سمجھی جاتی ہے۔",
+            benefits: [
+                "مادۂ منویہ کو گاڑھا اور مضبوط کرتی ہے",
+                "قدرتی قوت، طاقت اور توانائی میں اضافہ کرتی ہے",
+                "جریان، احتلام اور سرعتِ انزال سے پیدا ہونے والی کمزوری میں مفید ہے",
+                "اعصابی کمزوری، پٹھوں اور جوڑوں کی کمزوری کو دور کرنے میں معاون ہے",
+                "عمومی جسمانی کمزوری کے لیے بہترین مقوی ہے"
+            ],
+            ingredients: "خالص زعفران، قدرتی یونانی جڑی بوٹیاں، خالص شہد",
+            usage: "ایک چھوٹا چمچ دن میں دو بار (صبح و شام) کھانے سے پہلے شربتِ اکسیرِ جسم کے ساتھ استعمال کریں۔"
+        }
+    }
 ];
 
 app.get('/api/products', (req, res) => {
